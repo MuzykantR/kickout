@@ -1,0 +1,13 @@
+build/
+out/
+
+.vs/
+.vscode/
+*.user
+.idea/
+cmake-build-*/
+
+*.exe
+*.dll
+*.obj
+*.pdb
