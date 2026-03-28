@@ -57,7 +57,7 @@ const sf::Texture& Game::getTexture(const std::string& name) const {
     auto it = m_textures.find(name);
 
     // Если наши - возвращаем ссылку(!)
-    if (it != m.textures.end()) {
+    if (it != m_textures.end()) {
         return it->second;
     }
 
