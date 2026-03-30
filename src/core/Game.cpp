@@ -7,7 +7,7 @@ Game::Game()
     try {
         loadResources();
     } catch (const std::exception& e) {
-        // Выхож из программы при отсутствии ресурсов
+        // Выход из программы при отсутствии ресурсов
         std::cerr << "Resource Error: " << e.what() << std::endl;
     }
 
