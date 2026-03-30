@@ -1,41 +1,23 @@
-#include "platforms/Platform.hpp"
+#include "Platform.hpp"
 
-using namespace sf;
+Platform::Platform(const sf::Texture& texture, float x, float y, float width, float height) {
+    initTexture(texture);
 
-Platform::Platform(float startX, float startY, float width, float height) {
-    shape.setSize(Vector2f(width, height));
+    // Задаём размеры спрайта в зависимости от картинки
+    float scaleX = width / m_sprite.getLocalBounds().width;
+    float scaleY = height / m_sprite.getLocalBounds().height;
+    m_sprite.setScale(scaleX, scaleY);
 
-    shape.setPosition(startX, startY);
-
-    shape.setFillColor(Color(139, 69, 19)); 
-    
-    shape.setOutlineThickness(2.0f);
-
-    shape.setOutlineColor(Color::Black);
+    setPosition(x, y);
 }
 
-
-void Platform::draw(RenderWindow& window) {
-    window.draw(shape);
+void Platform::update(float deltaTime, std::vector<std::unique_ptr<Entity>>& newEntities) {
 }
 
-// Для проверки коллизий
-FloatRect Platform::getBounds() const {
-    return shape.getGlobalBounds();
+void Platform::draw(sf::RenderWindow& window) {
+    window.draw(m_sprite);
 }
 
-Vector2f Platform::getPosition() const {
-    return shape.getPosition();
-}
-
-Color Platform::getColor() const {
-    return shape.getFillColor();
-}
-
-void Platform::setColor(int red, int green, int blue, int alpha) {
-    shape.setFillColor(Color(red, green, blue, alpha));
-}
-
-void Platform::setColor(Color newColor) {
-    shape.setFillColor(newColor);
+void Platform::setColor(sf::Color color) {
+    m_sprite.setColor(color);
 }

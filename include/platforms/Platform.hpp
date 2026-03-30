@@ -1,24 +1,15 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "core/Entity.hpp"
 
-using namespace sf;
-
-class Platform {
-protected:
-    RectangleShape shape; 
-
+class Platform : public Entity {
 public:
-    Platform(float startX, float startY, float width, float height);
-
+    Platform(const sf::Texture& texture, float x, float y, float width, float height);
     virtual ~Platform() = default;
 
-    virtual void draw(RenderWindow& window);
+    // функции из Entity
+    void update(float deltaTime, std::vector<std::unique_ptr<Entity>>& newEntities) override;
+    void draw(sf::RenderWindow& window) override;
 
-    FloatRect getBounds() const;
-    Vector2f getPosition() const;
-    Color getColor() const;
-
-    void setColor(int red, int green, int blue, int alpha = 255);
-    void setColor(Color newColor);
-
+    void setColor(sf::Color color);
 };
