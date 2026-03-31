@@ -2,6 +2,8 @@
 #define ENTITY_HPP
 
 #include <SFML/Graphics.hpp>
+#include <memory>
+#include <vector>
 
 class Entity {
 public:
