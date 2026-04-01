@@ -7,6 +7,10 @@ Launcher::Launcher(const sf::Texture& tex, const sf::Texture& projTex, sf::Vecto
     setPosition(pos.x, pos.y);
 }
 
+void Launcher::draw(sf::RenderWindow& window) {
+    window.draw(m_sprite);
+}
+
 void Launcher::update(float deltaTime, std::vector<std::unique_ptr<Entity>>& newEntities) {
     m_timer += deltaTime;
 

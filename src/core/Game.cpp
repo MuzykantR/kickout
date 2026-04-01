@@ -1,11 +1,19 @@
 #include "core/Game.hpp"
+#include "obstacles/Crossbow.hpp"
 #include <stdexcept>
+#include <algorithm>
 
 Game::Game()
     : m_window(sf::VideoMode(W_WIDTH, W_HEIGHT), W_TITLE)
 {   
     try {
         loadResources();
+        auto crossbow = std::make_unique<Crossbow>(
+        getTexture("obs_crossbow"), 
+        getTexture("obs_arrow"), 
+        sf::Vector2f(100.f, 400.f)
+        );
+        m_entities.push_back(std::move(crossbow));
     } catch (const std::exception& e) {
         // Выход из программы при отсутствии ресурсов
         std::cerr << "Resource Error: " << e.what() << std::endl;
@@ -27,18 +35,20 @@ void Game::loadResources() {
 }
 
 void Game::loadTextures() {
-    // Список текстур
-    std::map<std::string, std::string> texturePaths = {
-        {"player", "assets/textures/player/hero.png"},
-        {"plt_stone", "assets/textures/platforms/stone.png"},
-        {"obs_swing", "assets/textures/obstacles/swing_trap.png"}
+    // Список: { "ID текстуры", "Путь к файлу" }
+    const std::map<std::string, std::string> textureManifest = {
+        {"obs_crossbow", "assets/textures/obstacles/crossbow.png"},
+        {"obs_arrow",    "assets/textures/obstacles/arrow.png"},
     };
 
-    for (const auto& [name, path] : texturePaths) {
-        if (!m_textures[name].loadFromFile(path)) {
-            throw std::runtime_error("Texture error: " + path);
+    for (const auto& [id, path] : textureManifest) {
+        // Проверяем, не загружена ли уже текстура
+        if (m_textures.find(id) == m_textures.end()) {
+            if (!m_textures[id].loadFromFile(path)) {
+                throw std::runtime_error("Failed to load: " + path);
+            }
+            std::cout << "[Texture] Loaded: " << id << std::endl;
         }
-        std::cout << "[Texture] Loaded: " << name << std::endl;
     }
 }
 
@@ -63,6 +73,24 @@ const sf::Texture& Game::getTexture(const std::string& name) const {
 
     // Если не нашли — кидаем ошибку с именем текстуры
     throw std::runtime_error("Texture not found in Assets: " + name);
+}
+
+void Game::spawnEntity(const std::string& type, sf::Vector2f pos) {
+    if (type == "crossbow") {   
+        m_entities.push_back(std::make_unique<Crossbow>(
+            getTexture("obs_crossbow"), 
+            getTexture("obs_arrow"), 
+            pos
+        ));
+    } 
+    else if (type == "platform") {
+        // Логика для платформ
+    }
+    else if (type == "player") {
+        // Логика для игрока
+    }
+    
+    std::cout << "[Factory] Spawned: " << type << " at (" << pos.x << ", " << pos.y << ")" << std::endl;
 }
 
 void Game::run() {
@@ -90,15 +118,35 @@ void Game::processEvents() {
 }
 
 void Game::update(float deltaTime) {
-    // player.update(deltaTime);
-    // obstacles.update(deltaTime);
+    // 1. Очередь для новых объектов (стрел)
+    std::vector<std::unique_ptr<Entity>> newEntities;
+
+    // 2. Обновляем всех, кто уже есть в мире
+    for (auto& entity : m_entities) {
+        entity->update(deltaTime, newEntities);
+    }
+
+    // 3. Переносим созданные стрелы в основной список
+    for (auto& ne : newEntities) {
+        m_entities.push_back(std::move(ne));
+    }
+
+    // 4. Очистка "мертвых" объектов (те, что улетели за экран)
+    m_entities.erase(
+        std::remove_if(m_entities.begin(), m_entities.end(),
+            [](const std::unique_ptr<Entity>& e) {
+                return e->isExpired();
+            }),
+        m_entities.end()
+    );
 }
 
 void Game::render() {
-    m_window.clear(sf::Color(30, 30, 30)); // Темно-серый фон
+    m_window.clear(sf::Color(255, 255, 255));
 
-    // m_window.draw(player);
-    // m_window.draw(platform);
+    for (auto& entity : m_entities) {
+        entity->draw(m_window);
+    }
 
     m_window.display();
 }

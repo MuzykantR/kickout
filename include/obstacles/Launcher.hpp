@@ -12,6 +12,8 @@ public:
     // Логика таймера
     void update(float deltaTime, std::vector<std::unique_ptr<Entity>>& newEntities) override;
 
+    void draw(sf::RenderWindow& window) override;
+    
 protected:
     const sf::Texture& m_projectileTexture;
     float m_timer = 0.0f;

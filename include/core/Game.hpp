@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include "core/Entity.hpp"
 #include <iostream>
 #include <string>
 #include <map>
@@ -17,6 +18,9 @@ public:
 
     // Доступ к текстурам
     const sf::Texture& getTexture(const std::string& name) const;
+
+    // Метод для спавна объекта
+    void spawnEntity(const std::string& type, sf::Vector2f pos);
 
 private:
     // Обработка ввода
@@ -39,6 +43,7 @@ private:
     const unsigned int W_WIDTH = 1280;
     const unsigned int W_HEIGHT = 720;
     const std::string W_TITLE = "Kickout";
+    std::vector<std::unique_ptr<Entity>> m_entities;
 
     // Хранилища структур
     std::map<std::string, sf::Texture> m_textures;
