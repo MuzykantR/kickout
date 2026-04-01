@@ -27,6 +27,16 @@ public:
 
     virtual bool isExpired() const { return m_isExpired; }     // Существует ли еще элемент
     void destroy() { m_isExpired = true; }
+
+    // Перемещение объекта относительно текущей позиции
+    void move(sf::Vector2f offset) { 
+        m_sprite.move(offset); 
+    }
+
+    // Перегрузка для удобства (через x, y)
+    void move(float offsetX, float offsetY) { 
+        m_sprite.move(offsetX, offsetY); 
+    }
     
     // Хитбокс объекта
     sf::FloatRect getBounds() const { return m_sprite.getGlobalBounds(); }

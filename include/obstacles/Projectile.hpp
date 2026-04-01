@@ -13,14 +13,9 @@ public:
     void update(float deltaTime, std::vector<std::unique_ptr<Entity>>& newEntities) override;
     void draw(sf::RenderWindow& window) override;
 
-    // Метод для Game.cpp: если врезались — вызываем это
-    void destroy() { m_isExpired = true; }
-    bool isExpired() const { return m_isExpired; }
-
 protected:
     sf::Vector2f m_velocity;
     float m_gravity;
-    bool m_isExpired = false;
 };
 
 #endif
