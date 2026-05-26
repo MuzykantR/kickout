@@ -1,4 +1,4 @@
-#include "Platform.hpp"
+#include "platforms/Platform.hpp"
 
 Platform::Platform(const sf::Texture& texture, float x, float y, float width, float height) {
     initTexture(texture);
