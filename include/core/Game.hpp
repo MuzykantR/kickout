@@ -1,59 +1,75 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include "core/Entity.hpp"
+#include <SFML/Graphics.hpp>
 #include <iostream>
-#include <string>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "core/Entity.hpp"
+#include "core/InputState.hpp"
+#include "entities/Player.hpp"
+#include "world/Camera.hpp"
+#include "world/Level.hpp"
 
 class Game {
 public:
     Game();
     ~Game();
-    
-    // Запуск игры
+
     void run();
 
-    // Доступ к текстурам
     const sf::Texture& getTexture(const std::string& name) const;
-
-    // Метод для спавна объекта
-    void spawnEntity(const std::string& type, sf::Vector2f pos);
+    void spawnEntity(const PlacedEntity& trap);
 
 private:
-    // Обработка ввода
     void processEvents();
-
-    // Обновление логики игры (физика, перемещение)
     void update(float deltaTime);
-
-    // Отрисовка кадра
     void render();
 
-    // Диспетчеры загрузки
-    void loadResources(); 
+    void loadResources();
     void loadTextures();
     void loadFonts();
     void loadSounds();
 
-private:
-    // Константы окна
-    const unsigned int W_WIDTH = 1280;
-    const unsigned int W_HEIGHT = 720;
+    bool loadLevelIndex(size_t index);
+    void spawnPlacedEntitiesFromLevel();
+    void advanceLevelOrWin();
+    void restartFromFirstLevel();
+    void tryPlaySfx(const std::string& name);
+
+    const unsigned int W_WIDTH = 1920;
+    const unsigned int W_HEIGHT = 1080;
     const std::string W_TITLE = "Kickout";
+
+    Level m_level;
+    Camera m_camera;
+    Player m_player;
+    InputState m_input;
+
+    std::vector<std::string> m_levelPaths;
+    size_t m_levelIndex = 0;
+    bool m_gameWon = false;
+
     std::vector<std::unique_ptr<Entity>> m_entities;
 
-    // Хранилища структур
     std::map<std::string, sf::Texture> m_textures;
-    std::map<std::string, sf::Font>    m_fonts;
-    std::map<std::string, sf::SoundBuffer> m_sounds;
-    
-    // Переменные контроля времени
+    std::map<std::string, sf::Font> m_fonts;
+    std::map<std::string, sf::SoundBuffer> m_soundBuffers;
+
+    sf::Sound m_sfx;
+    bool m_sfxReady = false;
+
     sf::Clock m_clock;
     sf::RenderWindow m_window;
 
+    sf::Text m_hud;
+    bool m_hudFontLoaded = false;
+    /// Предыдущий кадр: Space зажата — для прыжка только по новому нажатию (без автоповтора)
+    bool m_prevSpaceDown = false;
 };
 
 #endif

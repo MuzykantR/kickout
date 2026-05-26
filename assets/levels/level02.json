@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "tileSize": 48.0,
+  "grid": {
+    "columns": 40,
+    "rows": 10
+  },
+  "spawn": {
+    "x": 72.0,
+    "y": 120.0
+  },
+  "platforms": [
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 0.0,
+      "w": 1920.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 48.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 48.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 96.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 96.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 144.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 144.0,
+      "y": 144.0,
+      "w": 144.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 144.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 192.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 144.0,
+      "y": 192.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 192.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 240.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 144.0,
+      "y": 240.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 288.0,
+      "y": 240.0,
+      "w": 192.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 240.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 288.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 144.0,
+      "y": 288.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "ice",
+      "x": 288.0,
+      "y": 288.0,
+      "w": 192.0,
+      "h": 48.0,
+      "texture": "stub_ice"
+    },
+    {
+      "type": "solid",
+      "x": 480.0,
+      "y": 288.0,
+      "w": 192.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 288.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 336.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 144.0,
+      "y": 336.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 720.0,
+      "y": 336.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 336.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 384.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 144.0,
+      "y": 384.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 720.0,
+      "y": 384.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "finish",
+      "x": 1680.0,
+      "y": 384.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_finish"
+    },
+    {
+      "type": "solid",
+      "x": 1872.0,
+      "y": 384.0,
+      "w": 48.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    },
+    {
+      "type": "solid",
+      "x": 0.0,
+      "y": 432.0,
+      "w": 1920.0,
+      "h": 48.0,
+      "texture": "stub_solid"
+    }
+  ],
+  "traps": [
+    {
+      "type": "crossbow_fast",
+      "x": 960.0,
+      "y": 200.0,
+      "fireInterval": 0.85,
+      "projectileVelocity": [
+        600,
+        0
+      ]
+    }
+  ]
+}

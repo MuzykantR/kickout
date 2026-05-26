@@ -43,7 +43,6 @@ public:
 
 protected:
     sf::Sprite m_sprite;
-    sf::Texture m_texture;
     bool m_isExpired = false;
 };
 
