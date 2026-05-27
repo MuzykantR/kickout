@@ -12,8 +12,12 @@
 #include "core/Entity.hpp"
 #include "core/InputState.hpp"
 #include "entities/Player.hpp"
+#include "platforms/MovingPlatform.hpp"
+#include "platforms/VanishingPlatform.hpp"
 #include "world/Camera.hpp"
 #include "world/Level.hpp"
+
+enum class GameScreen { MainMenu, LevelSelect, Playing };
 
 class Game {
 public:
@@ -27,49 +31,69 @@ public:
 
 private:
     void processEvents();
-    void update(float deltaTime);
-    void render();
 
     void loadResources();
     void loadTextures();
     void loadFonts();
     void loadSounds();
 
+    void discoverLevelPaths();
     bool loadLevelIndex(size_t index);
     void spawnPlacedEntitiesFromLevel();
+    void spawnDynamicPlatformsFromLevel();   // создаёт MovingPlatform / VanishingPlatform
+    void respawnCurrentLevel();              // сброс сущностей + respawn игрока без перезагрузки файла
     void advanceLevelOrWin();
     void restartFromFirstLevel();
     void tryPlaySfx(const std::string& name);
 
-    const unsigned int W_WIDTH = 1920;
-    const unsigned int W_HEIGHT = 1080;
-    const std::string W_TITLE = "Kickout";
+    void buildLevelSelectButtons();
+    void drawButton(const sf::FloatRect& rect, const std::string& label);
+    void drawMainMenu();
+    void drawLevelSelect();
+    void updatePlaying(float dt);
+    void drawPlaying();
+    void handleMenuClick(sf::Vector2f pos);
 
-    Level m_level;
+    const unsigned int W_WIDTH  = 1920;
+    const unsigned int W_HEIGHT = 1080;
+    const std::string  W_TITLE  = "Kickout";
+
+    Level  m_level;
     Camera m_camera;
     Player m_player;
     InputState m_input;
 
+    GameScreen m_screen = GameScreen::MainMenu;
+
     std::vector<std::string> m_levelPaths;
     size_t m_levelIndex = 0;
-    bool m_gameWon = false;
+    bool   m_gameWon    = false;
+
+    bool m_hasMenuBackground = false;
+    sf::Sprite m_menuBackgroundSprite;
+
+    sf::FloatRect m_playButtonRect;
+    sf::FloatRect m_backButtonRect;
+    std::vector<sf::FloatRect> m_levelButtonRects;
 
     std::vector<std::unique_ptr<Entity>> m_entities;
 
     std::map<std::string, sf::Texture> m_textures;
-    std::map<std::string, sf::Font> m_fonts;
+    std::map<std::string, sf::Font>    m_fonts;
     std::map<std::string, sf::SoundBuffer> m_soundBuffers;
 
     sf::Sound m_sfx;
-    bool m_sfxReady = false;
+    bool      m_sfxReady = false;
 
-    sf::Clock m_clock;
+    // Однопиксельная белая текстура — заглушка для Entity-платформ
+    sf::Texture m_whiteTex;
+
+    sf::Clock       m_clock;
     sf::RenderWindow m_window;
 
     sf::Text m_hud;
-    bool m_hudFontLoaded = false;
-    /// Предыдущий кадр: Space зажата — для прыжка только по новому нажатию (без автоповтора)
-    bool m_prevSpaceDown = false;
+    bool     m_hudFontLoaded = false;
+    bool     m_prevSpaceDown = false;
 };
 
 #endif
