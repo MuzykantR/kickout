@@ -11,16 +11,20 @@ struct PlacedEntity {
     sf::Vector2f position;
 
     // Launcher-based traps
-    float        fireInterval        = 1.5f;
-    sf::Vector2f projectileVelocity  = {400.f, 0.f};
-    float        projectileGravity   = 0.f;
-    float        angle               = 0.f;     // градусы, для Cannon
-    float        projectileSpeed     = 400.f;   // для Turret/Cannon
+    float        fireInterval       = 1.5f;
+    sf::Vector2f projectileVelocity = {400.f, 0.f};
+    float        projectileGravity  = 0.f;
+    float        angle              = 0.f;    // градусы, для Cannon
+    float        projectileSpeed    = 400.f;  // для Turret/Cannon
 
     // Mine
-    float        triggerRadius       = 80.f;
-    float        armDelay            = 1.2f;
-    float        blastRadius         = 120.f;
+    float        triggerRadius      = 80.f;
+    float        armDelay           = 1.2f;
+    float        blastRadius        = 120.f;
+
+    // RotatingBlade
+    float        rotationSpeed      = 180.f;
+    sf::Vector2f size               = {0.f, 0.f};
 };
 
 // Описание динамической платформы, прочитанное из JSON-поля "dynamic_platforms"
@@ -72,6 +76,7 @@ public:
     const std::vector<LevelPlatformObject>& platforms() const { return m_platforms; }
     const std::vector<PlacedEntity>& placedEntities() const { return m_placedEntities; }
     const std::vector<DynamicPlatformDef>& dynamicPlatformDefs() const { return m_dynPlatformDefs; }
+    const std::string& backgroundPath() const { return m_backgroundPath; }
 
     bool overlapsSolid(const sf::FloatRect& worldRect) const;
     bool overlapsHazard(const sf::FloatRect& worldRect) const;
@@ -106,6 +111,7 @@ private:
     std::vector<sf::FloatRect> m_dynamicSolids;
 
     sf::Vector2f m_spawnPoint{64.f, 64.f};
+    std::string m_backgroundPath;
 };
 
 #endif

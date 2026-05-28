@@ -18,6 +18,7 @@ public:
 
     sf::FloatRect getHitbox() const;
     sf::Vector2f  getCenter() const;
+    void addExternalVelocity(const sf::Vector2f& dv) { m_velocity += dv; }
 
     bool isDead()          const { return m_dead; }
     void kill();

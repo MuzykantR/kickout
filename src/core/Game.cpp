@@ -3,6 +3,7 @@
 #include "obstacles/Crossbow.hpp"
 #include "obstacles/Mine.hpp"
 #include "obstacles/Projectile.hpp"
+#include "obstacles/RotatingBlade.hpp"
 #include "obstacles/Turret.hpp"
 
 #include <algorithm>
@@ -18,6 +19,38 @@ float clampDt(float dt) { return std::clamp(dt, 0.f, 0.05f); }
 constexpr float kMenuBtnW   = 360.f;
 constexpr float kMenuBtnH   = 56.f;
 constexpr float kMenuBtnGap = 18.f;
+
+bool isStandingOn(const sf::FloatRect& player, const sf::FloatRect& platform) {
+    constexpr float kTopEps = 6.f;
+    constexpr float kSideInset = 4.f;
+    const float playerBottom = player.top + player.height;
+    const bool nearTop = playerBottom >= platform.top - kTopEps &&
+                         playerBottom <= platform.top + kTopEps;
+
+    const float playerLeft = player.left + kSideInset;
+    const float playerRight = player.left + player.width - kSideInset;
+    const float platformLeft = platform.left;
+    const float platformRight = platform.left + platform.width;
+    const bool overlapX = playerRight > platformLeft && playerLeft < platformRight;
+    return nearTop && overlapX;
+}
+
+RotatingBlade* findBladeSupport(const std::vector<std::unique_ptr<Entity>>& entities,
+                                const sf::FloatRect& playerHitbox) {
+    RotatingBlade* support = nullptr;
+    float bestTop = 1e9f;
+    for (const auto& e : entities) {
+        auto* blade = dynamic_cast<RotatingBlade*>(e.get());
+        if (!blade || blade->isExpired()) continue;
+        const sf::FloatRect b = blade->getBounds();
+        if (!isStandingOn(playerHitbox, b)) continue;
+        if (b.top < bestTop) {
+            bestTop = b.top;
+            support = blade;
+        }
+    }
+    return support;
+}
 } // namespace
 
 Game::Game()
@@ -102,18 +135,19 @@ void Game::loadResources() {
 
 void Game::loadTextures() {
     const std::map<std::string, std::string> manifest = {
-        {"obs_crossbow",  "assets/textures/obstacles/crossbow.png"},
-        {"obs_arrow",     "assets/textures/obstacles/arrow.png"},
-        {"obs_cannon",    "assets/textures/obstacles/cannon.png"},
-        {"obs_cannonball","assets/textures/obstacles/cannonball.png"},
-        {"obs_turret",    "assets/textures/obstacles/turret.png"},
-        {"obs_bullet",    "assets/textures/obstacles/bullet.png"},
-        {"obs_mine",      "assets/textures/obstacles/mine.png"},
-        {"stub_solid",    "assets/textures/platforms/solid.png"},
-        {"stub_ice",      "assets/textures/platforms/ice.png"},
-        {"stub_spring",   "assets/textures/platforms/spring.png"},
-        {"stub_hazard",   "assets/textures/platforms/hazard.png"},
-        {"stub_finish",   "assets/textures/platforms/finish.png"},
+        {"obs_crossbow",   "assets/textures/obstacles/crossbow.png"},
+        {"obs_arrow",      "assets/textures/obstacles/arrow.png"},
+        {"obs_cannon",     "assets/textures/obstacles/cannon.png"},
+        {"obs_cannonball", "assets/textures/obstacles/cannonball.png"},
+        {"obs_turret",     "assets/textures/obstacles/turret.png"},
+        {"obs_bullet",     "assets/textures/obstacles/bullet.png"},
+        {"obs_mine",       "assets/textures/obstacles/mine.png"},
+        {"obs_blades",     "assets/textures/obstacles/blades.png"},
+        {"stub_solid",     "assets/textures/platforms/solid.png"},
+        {"stub_ice",       "assets/textures/platforms/ice.png"},
+        {"stub_spring",    "assets/textures/platforms/spring.png"},
+        {"stub_hazard",    "assets/textures/platforms/hazard.png"},
+        {"stub_finish",    "assets/textures/platforms/finish.png"},
     };
 
     for (const auto& [id, path] : manifest) {
@@ -187,8 +221,36 @@ bool Game::loadLevelIndex(size_t index) {
     m_entities.clear();
     spawnPlacedEntitiesFromLevel();
     spawnDynamicPlatformsFromLevel();
+    setupLevelBackground();
     m_gameWon = false;
     return true;
+}
+
+void Game::setupLevelBackground() {
+    m_hasLevelBackground = false;
+    const std::string& path = m_level.backgroundPath();
+    if (path.empty()) return;
+
+    auto it = m_textures.find(path);
+    if (it == m_textures.end()) {
+        sf::Texture tex;
+        if (!tex.loadFromFile(path)) {
+            std::cerr << "[Level BG] Not found: " << path << std::endl;
+            return;
+        }
+        it = m_textures.emplace(path, std::move(tex)).first;
+    }
+
+    m_levelBackgroundSprite.setTexture(it->second);
+    const auto bounds = m_levelBackgroundSprite.getLocalBounds();
+    m_levelBackgroundSprite.setOrigin(0.f, 0.f);
+    if (bounds.width > 0.f && bounds.height > 0.f) {
+        m_levelBackgroundSprite.setScale(
+            static_cast<float>(W_WIDTH) / bounds.width,
+            static_cast<float>(W_HEIGHT) / bounds.height);
+    }
+    m_levelBackgroundSprite.setPosition(0.f, 0.f);
+    m_hasLevelBackground = true;
 }
 
 void Game::spawnPlacedEntitiesFromLevel() {
@@ -225,6 +287,8 @@ void Game::respawnCurrentLevel() {
     spawnPlacedEntitiesFromLevel();
     spawnDynamicPlatformsFromLevel();
     m_player.respawn(m_level);
+    m_bladeSupportActive = false;
+    m_bladeCarryVelocity = {0.f, 0.f};
 }
 
 void Game::spawnEntity(const PlacedEntity& pe) {
@@ -271,6 +335,12 @@ void Game::spawnEntity(const PlacedEntity& pe) {
             [this]() { return m_player.getCenter(); },
             [this]() { m_player.kill(); }));
 
+    } else if (pe.type == "blades" || pe.type == "rotating_blades") {
+        m_entities.push_back(std::make_unique<RotatingBlade>(
+            tryGetTexture("obs_blades"),
+            pe.position,
+            pe.rotationSpeed,
+            pe.size));
     } else {
         std::cerr << "[Factory] Unknown trap type: " << pe.type << std::endl;
     }
@@ -442,13 +512,13 @@ void Game::updatePlaying(float dt) {
     for (auto& e : m_entities) {
         if (e->isExpired()) continue;
         if (dynamic_cast<MovingPlatform*>(e.get()) ||
-            dynamic_cast<VanishingPlatform*>(e.get())) {
+            dynamic_cast<VanishingPlatform*>(e.get()) ||
+            dynamic_cast<RotatingBlade*>(e.get())) {
             m_level.addDynamicSolid(e->getBounds());
         }
     }
 
-    // Перенос игрока движущейся платформой.
-    // Проверяем foot-rect: узкая полоска под хитбоксом игрока.
+    // Перенос игрока: MovingPlatform (позиционный сдвиг).
     {
         const sf::FloatRect hb = m_player.getHitbox();
         sf::FloatRect foot{hb.left + 2.f, hb.top + hb.height, hb.width - 4.f, 6.f};
@@ -462,15 +532,26 @@ void Game::updatePlaying(float dt) {
         }
     }
 
-    for (auto& e : m_entities) {
-        auto* vp = dynamic_cast<VanishingPlatform*>(e.get());
-        if (vp && !vp->isExpired() &&
-            vp->getBounds().intersects(m_player.getHitbox())) {
-            vp->onCollision();
+    // Перенос игрока: RotatingBlade (линейная скорость поверхности).
+    {
+        const sf::FloatRect preHb = m_player.getHitbox();
+        RotatingBlade* supportBlade = findBladeSupport(m_entities, preHb);
+        if (supportBlade != nullptr && !m_input.jumpPressed) {
+            const sf::Vector2f carryVel = supportBlade->pointLinearVelocity(m_player.getCenter());
+            m_player.applyPlatformCarry(carryVel * dt);
         }
     }
 
     m_player.update(dt, m_level, m_input);
+
+    const sf::FloatRect playerHitbox = m_player.getHitbox();
+    for (auto& e : m_entities) {
+        auto* vp = dynamic_cast<VanishingPlatform*>(e.get());
+        if (!vp || vp->isExpired()) continue;
+        if (isStandingOn(playerHitbox, vp->getBounds())) {
+            vp->onCollision();
+        }
+    }
 
     for (auto& e : m_entities) {
         auto* proj = dynamic_cast<Projectile*>(e.get());
@@ -480,6 +561,18 @@ void Game::updatePlaying(float dt) {
         } else if (proj->getBounds().intersects(m_player.getHitbox())) {
             m_player.kill();
         }
+    }
+
+    RotatingBlade* supportAfter = findBladeSupport(m_entities, m_player.getHitbox());
+    if (supportAfter != nullptr && !m_input.jumpPressed) {
+        m_bladeSupportActive = true;
+        m_bladeCarryVelocity = supportAfter->pointLinearVelocity(m_player.getCenter());
+    } else {
+        if (m_bladeSupportActive) {
+            m_player.addExternalVelocity(m_bladeCarryVelocity);
+        }
+        m_bladeSupportActive = false;
+        m_bladeCarryVelocity = {0.f, 0.f};
     }
 
     m_entities.erase(
@@ -500,13 +593,21 @@ void Game::updatePlaying(float dt) {
 
 void Game::drawPlaying() {
     m_camera.follow(m_player.getCenter(), m_window.getSize(), m_level.pixelSize());
-    m_window.setView(m_camera.view());
 
-    m_window.clear(sf::Color(120, 150, 190));
+    if (m_hasLevelBackground) {
+        m_window.clear();
+        m_window.setView(m_window.getDefaultView());
+        m_window.draw(m_levelBackgroundSprite);
+    } else {
+        m_window.clear(sf::Color(120, 150, 190));
+    }
+
+    m_window.setView(m_camera.view());
     {
         std::map<std::string, const sf::Texture*> texMap;
         for (const auto& [id, tex] : m_textures) {
             if (id == "menu_bg") continue;
+            if (m_hasLevelBackground && id == m_level.backgroundPath()) continue;
             texMap[id] = &tex;
         }
         m_level.draw(m_window, &texMap);

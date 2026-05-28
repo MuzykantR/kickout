@@ -48,10 +48,15 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
     m_platforms.clear();
     m_finishTriggers.clear();
     m_dynPlatformDefs.clear();
+    m_backgroundPath.clear();
 
     try {
         nlohmann::json j = nlohmann::json::parse(jsonUtf8);
         (void)j.value("version", 1);
+
+        if (j.contains("background") && j["background"].is_string()) {
+            m_backgroundPath = j["background"].get<std::string>();
+        }
 
         m_tileSize = j.value("tileSize", 48.f);
         if (m_tileSize <= 0.f) {
@@ -157,7 +162,9 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                 pe.triggerRadius      = t.value("triggerRadius",      80.f);
                 pe.armDelay           = t.value("armDelay",           1.2f);
                 pe.blastRadius        = t.value("blastRadius",        120.f);
-
+                pe.rotationSpeed      = t.value("rotationSpeed",
+                                          t.value("bladeSpeed", 180.f));
+                pe.size               = {t.value("w", 0.f), t.value("h", 0.f)};
                 m_placedEntities.push_back(std::move(pe));
             }
         }

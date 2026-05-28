@@ -72,10 +72,16 @@ private:
 
     bool m_hasMenuBackground = false;
     sf::Sprite m_menuBackgroundSprite;
+    bool m_hasLevelBackground = false;
+    sf::Sprite m_levelBackgroundSprite;
+
+    void setupLevelBackground();
 
     sf::FloatRect m_playButtonRect;
     sf::FloatRect m_backButtonRect;
     std::vector<sf::FloatRect> m_levelButtonRects;
+    bool m_bladeSupportActive = false;
+    sf::Vector2f m_bladeCarryVelocity{0.f, 0.f};
 
     std::vector<std::unique_ptr<Entity>> m_entities;
 
