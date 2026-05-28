@@ -46,6 +46,14 @@ sf::Vector2f Player::getCenter() const {
     return {m_position.x + m_size.x * 0.5f, m_position.y + m_size.y * 0.5f};
 }
 
+void Player::applyExternalDisplacement(const sf::Vector2f& delta) {
+    m_position += delta;
+}
+
+void Player::addExternalVelocity(const sf::Vector2f& deltaVelocity) {
+    m_velocity += deltaVelocity;
+}
+
 void Player::kill() {
     if (m_dead || m_finishedLevel) {
         return;

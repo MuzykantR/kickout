@@ -52,10 +52,15 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
     m_platforms.clear();
     m_finishTriggers.clear();
     m_dynPlatformDefs.clear();
+    m_backgroundPath.clear();
 
     try {
         nlohmann::json j = nlohmann::json::parse(jsonUtf8);
         (void)j.value("version", 1);
+
+        if (j.contains("background") && j["background"].is_string()) {
+            m_backgroundPath = j["background"].get<std::string>();
+        }
 
         m_tileSize = j.value("tileSize", 48.f);
         if (m_tileSize <= 0.f) {
@@ -154,6 +159,12 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                         ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
                                        t["projectileVelocity"][1].get<float>()}
                         : sf::Vector2f{600.f, 0.f};
+                } else if (pe.type == "blades" || pe.type == "rotating_blades") {
+                    pe.rotationSpeed = t.value("rotationSpeed", t.value("bladeSpeed", 180.f));
+                    pe.size = {
+                        t.value("w", 0.f),
+                        t.value("h", 0.f)
+                    };
                 } else {
                     pe.fireInterval         = hasFi ? t["fireInterval"].get<float>() : 1.5f;
                     pe.projectileVelocity   = hasPv

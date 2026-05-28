@@ -7,8 +7,8 @@ VanishingPlatform::VanishingPlatform(const sf::Texture& texture,
 {}
 
 void VanishingPlatform::setDeathTime(float time) {
-    m_deathTime    = time;
-    m_maxDeathTime = time;
+    m_deathTime    = std::max(time, 0.05f);
+    m_maxDeathTime = m_deathTime;
 }
 
 void VanishingPlatform::onCollision() {
