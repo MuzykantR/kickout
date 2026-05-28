@@ -222,6 +222,8 @@ bool Game::loadLevelIndex(size_t index) {
     spawnPlacedEntitiesFromLevel();
     spawnDynamicPlatformsFromLevel();
     setupLevelBackground();
+    m_bladeSupportActive = false;
+    m_bladeCarryVelocity = {0.f, 0.f};
     m_gameWon = false;
     return true;
 }
@@ -560,6 +562,20 @@ void Game::updatePlaying(float dt) {
             proj->destroy();
         } else if (proj->getBounds().intersects(m_player.getHitbox())) {
             m_player.kill();
+        }
+    }
+
+    // Лезвие убивает игрока при контакте сбоку или снизу.
+    // Стоять сверху — безопасно (isStandingOn).
+    {
+        const sf::FloatRect phb = m_player.getHitbox();
+        for (auto& e : m_entities) {
+            auto* blade = dynamic_cast<RotatingBlade*>(e.get());
+            if (!blade || blade->isExpired()) continue;
+            if (blade->getBounds().intersects(phb) && !isStandingOn(phb, blade->getBounds())) {
+                m_player.kill();
+                break;
+            }
         }
     }
 
