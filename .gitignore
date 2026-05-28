@@ -12,3 +12,7 @@ cmake-build-*/
 *.dll
 *.obj
 *.pdb
+
+.cursor/
+CLAUDE.md
+.claude/

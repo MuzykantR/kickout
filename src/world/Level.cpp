@@ -6,10 +6,6 @@
 #include <sstream>
 #include <utility>
 
-bool Level::rectIntersects(const sf::FloatRect& a, const sf::FloatRect& b) {
-    return a.intersects(b);
-}
-
 sf::FloatRect Level::inflateRect(const sf::FloatRect& r, float amount) {
     return {r.left - amount, r.top - amount, r.width + 2.f * amount, r.height + 2.f * amount};
 }
@@ -148,19 +144,20 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                                    t["projectileVelocity"].is_array() &&
                                    t["projectileVelocity"].size() >= 2;
 
-                if (pe.type == "crossbow_fast") {
-                    pe.fireInterval         = hasFi ? t["fireInterval"].get<float>() : 0.85f;
-                    pe.projectileVelocity   = hasPv
-                        ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
-                                       t["projectileVelocity"][1].get<float>()}
-                        : sf::Vector2f{600.f, 0.f};
-                } else {
-                    pe.fireInterval         = hasFi ? t["fireInterval"].get<float>() : 1.5f;
-                    pe.projectileVelocity   = hasPv
-                        ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
-                                       t["projectileVelocity"][1].get<float>()}
-                        : sf::Vector2f{400.f, 0.f};
-                }
+                pe.fireInterval       = hasFi ? t["fireInterval"].get<float>()
+                                              : (pe.type == "crossbow_fast" ? 0.85f : 1.5f);
+                pe.projectileVelocity = hasPv
+                    ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
+                                   t["projectileVelocity"][1].get<float>()}
+                    : sf::Vector2f{pe.type == "crossbow_fast" ? 600.f : 400.f, 0.f};
+
+                pe.projectileGravity  = t.value("projectileGravity", 0.f);
+                pe.angle              = t.value("angle",              0.f);
+                pe.projectileSpeed    = t.value("projectileSpeed",    400.f);
+                pe.triggerRadius      = t.value("triggerRadius",      80.f);
+                pe.armDelay           = t.value("armDelay",           1.2f);
+                pe.blastRadius        = t.value("blastRadius",        120.f);
+
                 m_placedEntities.push_back(std::move(pe));
             }
         }
@@ -207,130 +204,6 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
     }
 }
 
-bool Level::parseLine(const std::string& line, std::vector<Tile>& row, int& outPlayerCol,
-                      bool& outHasPlayer, std::vector<std::pair<int, std::string>>& outSpawnsInRow) {
-    row.clear();
-    outSpawnsInRow.clear();
-    int col = 0;
-    for (char ch : line) {
-        if (ch == '\r') continue;
-        switch (ch) {
-        case '#': case '1': row.push_back(Tile::Solid);  break;
-        case 'I': case 'i': row.push_back(Tile::Ice);    break;
-        case '^':            row.push_back(Tile::Spring); break;
-        case 'X': case 'x': case 'S': row.push_back(Tile::Hazard); break;
-        case 'F': case 'f': row.push_back(Tile::Finish); break;
-        case '@':
-            row.push_back(Tile::Empty);
-            outPlayerCol = col;
-            outHasPlayer = true;
-            break;
-        case 'c':
-            row.push_back(Tile::Empty);
-            outSpawnsInRow.push_back({col, "crossbow"});
-            break;
-        case 'h':
-            row.push_back(Tile::Empty);
-            outSpawnsInRow.push_back({col, "crossbow_fast"});
-            break;
-        case '.': case ' ': row.push_back(Tile::Empty); break;
-        default: return false;
-        }
-        ++col;
-    }
-    return !row.empty();
-}
-
-bool Level::loadFromString(const std::string& content, const std::string& debugName,
-                           std::string& outError) {
-    m_placedEntities.clear();
-    m_platforms.clear();
-    m_finishTriggers.clear();
-    m_dynPlatformDefs.clear();
-
-    std::istringstream in(content);
-    std::string line;
-    std::vector<std::vector<Tile>> rows;
-    bool hasSpawn = false;
-    int spawnCol = 0;
-    int spawnRow = 0;
-
-    while (std::getline(in, line)) {
-        if (line.empty()) continue;
-        std::vector<Tile> row;
-        int playerCol      = -1;
-        bool lineHasPlayer = false;
-        std::vector<std::pair<int, std::string>> rowSpawns;
-        if (!parseLine(line, row, playerCol, lineHasPlayer, rowSpawns)) {
-            outError = "Bad character in level: " + debugName;
-            return false;
-        }
-        if (!rows.empty() && row.size() != rows.front().size()) {
-            outError = "Ragged level row in: " + debugName;
-            return false;
-        }
-        const int currentRowIndex = static_cast<int>(rows.size());
-        const float half = m_tileSize * 0.5f;
-        for (const auto& spawn : rowSpawns) {
-            m_placedEntities.push_back(
-                {spawn.second,
-                 {static_cast<float>(spawn.first) * m_tileSize + half,
-                  static_cast<float>(currentRowIndex) * m_tileSize + half}});
-        }
-        if (lineHasPlayer) {
-            if (hasSpawn) {
-                outError = "Multiple @ spawn markers in: " + debugName;
-                return false;
-            }
-            hasSpawn = true;
-            spawnCol = playerCol;
-            spawnRow = static_cast<int>(rows.size());
-        }
-        rows.push_back(std::move(row));
-    }
-
-    if (rows.empty()) {
-        outError = "Empty level: " + debugName;
-        return false;
-    }
-
-    m_gridColumns = static_cast<int>(rows.front().size());
-    m_gridRows    = static_cast<int>(rows.size());
-
-    for (int y = 0; y < m_gridRows; ++y) {
-        for (int x = 0; x < m_gridColumns; ++x) {
-            const Tile t = rows[static_cast<size_t>(y)][static_cast<size_t>(x)];
-            if (t == Tile::Empty) continue;
-            LevelPlatformObject obj;
-            obj.bounds    = {static_cast<float>(x) * m_tileSize,
-                             static_cast<float>(y) * m_tileSize,
-                             m_tileSize, m_tileSize};
-            obj.kind      = t;
-            obj.textureId = "stub_ascii_cell";
-            m_platforms.push_back(std::move(obj));
-        }
-    }
-
-    std::stable_sort(m_platforms.begin(), m_platforms.end(),
-                     [](const LevelPlatformObject& a, const LevelPlatformObject& b) {
-                         return tileLayerOrder(a.kind) < tileLayerOrder(b.kind);
-                     });
-
-    for (const auto& pl : m_platforms) {
-        if (pl.kind == Tile::Finish) {
-            m_finishTriggers.push_back(pl.bounds);
-        }
-    }
-
-    const float half = m_tileSize * 0.5f;
-    m_spawnPoint = hasSpawn
-        ? sf::Vector2f{static_cast<float>(spawnCol) * m_tileSize + half,
-                       static_cast<float>(spawnRow) * m_tileSize + half}
-        : sf::Vector2f{half, half};
-
-    return true;
-}
-
 bool Level::loadFromFile(const std::string& path, std::string& outError) {
     std::ifstream f(path);
     if (!f) {
@@ -339,19 +212,7 @@ bool Level::loadFromFile(const std::string& path, std::string& outError) {
     }
     std::ostringstream ss;
     ss << f.rdbuf();
-    const std::string content = ss.str();
-
-    const std::string lower = [&] {
-        std::string s = path;
-        for (char& c : s)
-            if (c >= 'A' && c <= 'Z') c = static_cast<char>(c - 'A' + 'a');
-        return s;
-    }();
-
-    const bool isJson = lower.size() >= 5 &&
-                        lower.compare(lower.size() - 5, 5, ".json") == 0;
-    return isJson ? loadFromJsonString(content, path, outError)
-                  : loadFromString(content, path, outError);
+    return loadFromJsonString(ss.str(), path, outError);
 }
 
 // ── Коллизии ───────────────────────────────────────────────────────────────
@@ -359,19 +220,19 @@ bool Level::loadFromFile(const std::string& path, std::string& outError) {
 bool Level::overlapsSolid(const sf::FloatRect& worldRect) const {
     for (const auto& pl : m_platforms) {
         if (pl.kind == Tile::Solid || pl.kind == Tile::Ice || pl.kind == Tile::Spring) {
-            if (rectIntersects(worldRect, pl.bounds)) return true;
+            if (worldRect.intersects(pl.bounds)) return true;
         }
     }
     // Динамические платформы (движущиеся / ещё не исчезнувшие)
     for (const auto& r : m_dynamicSolids) {
-        if (rectIntersects(worldRect, r)) return true;
+        if (worldRect.intersects(r)) return true;
     }
     return false;
 }
 
 bool Level::overlapsHazard(const sf::FloatRect& worldRect) const {
     for (const auto& pl : m_platforms) {
-        if (pl.kind == Tile::Hazard && rectIntersects(worldRect, pl.bounds)) return true;
+        if (pl.kind == Tile::Hazard && worldRect.intersects(pl.bounds)) return true;
     }
     return false;
 }
@@ -382,7 +243,7 @@ bool Level::overlapsFinish(const sf::FloatRect& worldRect) const {
     for (sf::FloatRect zone : m_finishTriggers) {
         zone = inflateRect(zone, kPad);
         zone.height += kExtraBottom;
-        if (rectIntersects(worldRect, zone)) return true;
+        if (worldRect.intersects(zone)) return true;
     }
     return false;
 }
@@ -398,7 +259,7 @@ Tile Level::sampleGroundBelow(const sf::FloatRect& playerBounds) const {
 
     for (const auto& pl : m_platforms) {
         if (pl.kind != Tile::Solid && pl.kind != Tile::Ice && pl.kind != Tile::Spring) continue;
-        if (!rectIntersects(foot, pl.bounds)) continue;
+        if (!foot.intersects(pl.bounds)) continue;
         if (!found || pl.bounds.top < bestTop) {
             bestTop = pl.bounds.top;
             best    = pl.kind;
@@ -407,7 +268,7 @@ Tile Level::sampleGroundBelow(const sf::FloatRect& playerBounds) const {
     }
     // Динамические платформы — обычный Solid (нет льда/пружин)
     for (const auto& r : m_dynamicSolids) {
-        if (rectIntersects(foot, r)) {
+        if (foot.intersects(r)) {
             if (!found || r.top < bestTop) {
                 bestTop = r.top;
                 best    = Tile::Solid;

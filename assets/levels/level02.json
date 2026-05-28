@@ -254,13 +254,31 @@
   "traps": [
     {
       "type": "crossbow_fast",
-      "x": 960.0,
-      "y": 200.0,
+      "x": 960.0, "y": 200.0,
       "fireInterval": 0.85,
-      "projectileVelocity": [
-        600,
-        0
-      ]
+      "projectileVelocity": [600, 0]
+    },
+    {
+      "type": "cannon",
+      "x": 480.0, "y": 340.0,
+      "fireInterval": 2.5,
+      "angle": -35,
+      "projectileSpeed": 520,
+      "projectileGravity": 900
+    },
+    {
+      "type": "turret",
+      "x": 1200.0, "y": 288.0,
+      "fireInterval": 2.0,
+      "projectileSpeed": 380,
+      "projectileGravity": 0
+    },
+    {
+      "type": "mine",
+      "x": 720.0, "y": 390.0,
+      "triggerRadius": 90,
+      "armDelay": 1.0,
+      "blastRadius": 130
     }
   ]
 }

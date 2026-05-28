@@ -27,6 +27,7 @@ public:
     void run();
 
     const sf::Texture& getTexture(const std::string& name) const;
+    const sf::Texture& tryGetTexture(const std::string& name) const;
     void spawnEntity(const PlacedEntity& trap);
 
 private:
