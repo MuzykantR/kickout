@@ -400,6 +400,21 @@ void Game::updatePlaying(float dt) {
         }
     }
 
+    // Перенос игрока движущейся платформой.
+    // Проверяем foot-rect: узкая полоска под хитбоксом игрока.
+    {
+        const sf::FloatRect hb = m_player.getHitbox();
+        sf::FloatRect foot{hb.left + 2.f, hb.top + hb.height, hb.width - 4.f, 6.f};
+        for (auto& e : m_entities) {
+            auto* mp = dynamic_cast<MovingPlatform*>(e.get());
+            if (!mp || mp->isExpired()) continue;
+            if (foot.intersects(mp->getBounds())) {
+                m_player.applyPlatformCarry(mp->getDelta());
+                break;
+            }
+        }
+    }
+
     for (auto& e : m_entities) {
         auto* vp = dynamic_cast<VanishingPlatform*>(e.get());
         if (vp && !vp->isExpired() &&

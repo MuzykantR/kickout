@@ -13,12 +13,13 @@ void MovingPlatform::setMovement(sf::Vector2f offset, float speed) {
 }
 
 void MovingPlatform::update(float deltaTime, std::vector<std::unique_ptr<Entity>>& /*newEntities*/) {
-    if (m_speed == 0.f) return;
+    if (m_speed == 0.f) { m_delta = {0.f, 0.f}; return; }
 
-    const sf::Vector2f goal   = m_movingToB ? m_pointB : m_pointA;
-    const sf::Vector2f toGoal = goal - getPosition();
-    const float dist = std::sqrt(toGoal.x * toGoal.x + toGoal.y * toGoal.y);
-    const float step = m_speed * deltaTime;
+    const sf::Vector2f prev    = getPosition();
+    const sf::Vector2f goal    = m_movingToB ? m_pointB : m_pointA;
+    const sf::Vector2f toGoal  = goal - prev;
+    const float        dist    = std::sqrt(toGoal.x * toGoal.x + toGoal.y * toGoal.y);
+    const float        step    = m_speed * deltaTime;
 
     if (dist <= step) {
         m_sprite.setPosition(goal);
@@ -26,4 +27,6 @@ void MovingPlatform::update(float deltaTime, std::vector<std::unique_ptr<Entity>
     } else {
         m_sprite.move(toGoal / dist * step);
     }
+
+    m_delta = getPosition() - prev;
 }

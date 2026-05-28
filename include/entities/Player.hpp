@@ -22,6 +22,9 @@ public:
     bool isDead()          const { return m_dead; }
     void kill();
 
+    // Применяет смещение платформы-носителя до собственного update.
+    void applyPlatformCarry(sf::Vector2f delta) { m_position += delta; }
+
     bool reachedFinish()   const { return m_finishedLevel; }
     void clearFinish()           { m_finishedLevel = false; }
 
