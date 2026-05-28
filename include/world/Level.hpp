@@ -7,10 +7,20 @@
 #include <vector>
 
 struct PlacedEntity {
-    std::string type;
+    std::string  type;
     sf::Vector2f position;
-    float fireInterval = 1.5f;
-    sf::Vector2f projectileVelocity{400.f, 0.f};
+
+    // Launcher-based traps
+    float        fireInterval        = 1.5f;
+    sf::Vector2f projectileVelocity  = {400.f, 0.f};
+    float        projectileGravity   = 0.f;
+    float        angle               = 0.f;     // градусы, для Cannon
+    float        projectileSpeed     = 400.f;   // для Turret/Cannon
+
+    // Mine
+    float        triggerRadius       = 80.f;
+    float        armDelay            = 1.2f;
+    float        blastRadius         = 120.f;
 };
 
 // Описание динамической платформы, прочитанное из JSON-поля "dynamic_platforms"

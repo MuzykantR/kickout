@@ -144,19 +144,20 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                                    t["projectileVelocity"].is_array() &&
                                    t["projectileVelocity"].size() >= 2;
 
-                if (pe.type == "crossbow_fast") {
-                    pe.fireInterval         = hasFi ? t["fireInterval"].get<float>() : 0.85f;
-                    pe.projectileVelocity   = hasPv
-                        ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
-                                       t["projectileVelocity"][1].get<float>()}
-                        : sf::Vector2f{600.f, 0.f};
-                } else {
-                    pe.fireInterval         = hasFi ? t["fireInterval"].get<float>() : 1.5f;
-                    pe.projectileVelocity   = hasPv
-                        ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
-                                       t["projectileVelocity"][1].get<float>()}
-                        : sf::Vector2f{400.f, 0.f};
-                }
+                pe.fireInterval       = hasFi ? t["fireInterval"].get<float>()
+                                              : (pe.type == "crossbow_fast" ? 0.85f : 1.5f);
+                pe.projectileVelocity = hasPv
+                    ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
+                                   t["projectileVelocity"][1].get<float>()}
+                    : sf::Vector2f{pe.type == "crossbow_fast" ? 600.f : 400.f, 0.f};
+
+                pe.projectileGravity  = t.value("projectileGravity", 0.f);
+                pe.angle              = t.value("angle",              0.f);
+                pe.projectileSpeed    = t.value("projectileSpeed",    400.f);
+                pe.triggerRadius      = t.value("triggerRadius",      80.f);
+                pe.armDelay           = t.value("armDelay",           1.2f);
+                pe.blastRadius        = t.value("blastRadius",        120.f);
+
                 m_placedEntities.push_back(std::move(pe));
             }
         }

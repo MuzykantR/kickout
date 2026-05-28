@@ -1,6 +1,9 @@
 #include "core/Game.hpp"
+#include "obstacles/Cannon.hpp"
 #include "obstacles/Crossbow.hpp"
+#include "obstacles/Mine.hpp"
 #include "obstacles/Projectile.hpp"
+#include "obstacles/Turret.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -99,13 +102,18 @@ void Game::loadResources() {
 
 void Game::loadTextures() {
     const std::map<std::string, std::string> manifest = {
-        {"obs_crossbow", "assets/textures/obstacles/crossbow.png"},
-        {"obs_arrow",    "assets/textures/obstacles/arrow.png"},
-        {"stub_solid",   "assets/textures/platforms/solid.png"},
-        {"stub_ice",     "assets/textures/platforms/ice.png"},
-        {"stub_spring",  "assets/textures/platforms/spring.png"},
-        {"stub_hazard",  "assets/textures/platforms/hazard.png"},
-        {"stub_finish",  "assets/textures/platforms/finish.png"},
+        {"obs_crossbow",  "assets/textures/obstacles/crossbow.png"},
+        {"obs_arrow",     "assets/textures/obstacles/arrow.png"},
+        {"obs_cannon",    "assets/textures/obstacles/cannon.png"},
+        {"obs_cannonball","assets/textures/obstacles/cannonball.png"},
+        {"obs_turret",    "assets/textures/obstacles/turret.png"},
+        {"obs_bullet",    "assets/textures/obstacles/bullet.png"},
+        {"obs_mine",      "assets/textures/obstacles/mine.png"},
+        {"stub_solid",    "assets/textures/platforms/solid.png"},
+        {"stub_ice",      "assets/textures/platforms/ice.png"},
+        {"stub_spring",   "assets/textures/platforms/spring.png"},
+        {"stub_hazard",   "assets/textures/platforms/hazard.png"},
+        {"stub_finish",   "assets/textures/platforms/finish.png"},
     };
 
     for (const auto& [id, path] : manifest) {
@@ -221,14 +229,48 @@ void Game::respawnCurrentLevel() {
 
 void Game::spawnEntity(const PlacedEntity& pe) {
     const sf::FloatRect bounds{{0.f, 0.f}, m_level.pixelSize()};
+
     if (pe.type == "crossbow" || pe.type == "crossbow_fast") {
         m_entities.push_back(std::make_unique<Crossbow>(
-            getTexture("obs_crossbow"),
-            getTexture("obs_arrow"),
+            tryGetTexture("obs_crossbow"),
+            tryGetTexture("obs_arrow"),
             pe.position,
             pe.fireInterval,
             pe.projectileVelocity,
             bounds));
+
+    } else if (pe.type == "cannon") {
+        m_entities.push_back(std::make_unique<Cannon>(
+            tryGetTexture("obs_cannon"),
+            tryGetTexture("obs_cannonball"),
+            pe.position,
+            pe.fireInterval,
+            pe.angle,
+            pe.projectileSpeed,
+            pe.projectileGravity,
+            bounds));
+
+    } else if (pe.type == "turret") {
+        m_entities.push_back(std::make_unique<Turret>(
+            tryGetTexture("obs_turret"),
+            tryGetTexture("obs_bullet"),
+            pe.position,
+            pe.fireInterval,
+            pe.projectileSpeed,
+            pe.projectileGravity,
+            bounds,
+            [this]() { return m_player.getCenter(); }));
+
+    } else if (pe.type == "mine") {
+        m_entities.push_back(std::make_unique<Mine>(
+            tryGetTexture("obs_mine"),
+            pe.position,
+            pe.triggerRadius,
+            pe.armDelay,
+            pe.blastRadius,
+            [this]() { return m_player.getCenter(); },
+            [this]() { m_player.kill(); }));
+
     } else {
         std::cerr << "[Factory] Unknown trap type: " << pe.type << std::endl;
     }
@@ -238,6 +280,11 @@ const sf::Texture& Game::getTexture(const std::string& name) const {
     auto it = m_textures.find(name);
     if (it != m_textures.end()) return it->second;
     throw std::runtime_error("Texture not found: " + name);
+}
+
+const sf::Texture& Game::tryGetTexture(const std::string& name) const {
+    auto it = m_textures.find(name);
+    return (it != m_textures.end()) ? it->second : m_whiteTex;
 }
 
 void Game::tryPlaySfx(const std::string& name) {
