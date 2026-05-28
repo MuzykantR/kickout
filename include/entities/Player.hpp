@@ -18,9 +18,6 @@ public:
     sf::Vector2f getCenter() const;
 
     bool isDead() const { return m_dead; }
-    void clearDead() { m_dead = false; }
-
-    /// Мгновенная смерть (например, от снаряда)
     void kill();
 
     bool reachedFinish() const { return m_finishedLevel; }

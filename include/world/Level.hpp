@@ -4,7 +4,6 @@
 #include <SFML/Graphics.hpp>
 #include <map>
 #include <string>
-#include <utility>
 #include <vector>
 
 struct PlacedEntity {
@@ -45,7 +44,6 @@ public:
     Level() = default;
 
     bool loadFromFile(const std::string& path, std::string& outError);
-    bool loadFromString(const std::string& content, const std::string& debugName, std::string& outError);
     bool loadFromJsonString(const std::string& jsonUtf8, const std::string& debugName,
                             std::string& outError);
 
@@ -82,12 +80,8 @@ public:
 private:
     static bool platformTypeStringToTile(const std::string& s, Tile& out, std::string& err);
     static int tileLayerOrder(Tile t);
-    static bool rectIntersects(const sf::FloatRect& a, const sf::FloatRect& b);
     static sf::FloatRect inflateRect(const sf::FloatRect& r, float amount);
     static sf::Color kindToDebugColor(Tile k);
-
-    bool parseLine(const std::string& line, std::vector<Tile>& row, int& outPlayerCol,
-                   bool& outHasPlayer, std::vector<std::pair<int, std::string>>& outSpawnsInRow);
 
     float m_tileSize = 48.f;
     int m_gridColumns = 0;

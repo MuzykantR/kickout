@@ -220,13 +220,15 @@ void Game::respawnCurrentLevel() {
 }
 
 void Game::spawnEntity(const PlacedEntity& pe) {
+    const sf::FloatRect bounds{{0.f, 0.f}, m_level.pixelSize()};
     if (pe.type == "crossbow" || pe.type == "crossbow_fast") {
         m_entities.push_back(std::make_unique<Crossbow>(
             getTexture("obs_crossbow"),
             getTexture("obs_arrow"),
             pe.position,
             pe.fireInterval,
-            pe.projectileVelocity));
+            pe.projectileVelocity,
+            bounds));
     } else {
         std::cerr << "[Factory] Unknown trap type: " << pe.type << std::endl;
     }

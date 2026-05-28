@@ -12,6 +12,6 @@ public:
 private:
     sf::Vector2f m_pointA;
     sf::Vector2f m_pointB;
-    sf::Vector2f m_currentGoal;
-    float m_speed;
+    float m_speed    = 0.f;
+    bool  m_movingToB = true;
 };
