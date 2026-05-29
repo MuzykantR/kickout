@@ -1,5 +1,6 @@
 #include "core/Game.hpp"
 #include "core/EntityFactory.hpp"
+#include "obstacles/BarbedWire.hpp"
 #include "obstacles/Cannon.hpp"
 #include "obstacles/Crossbow.hpp"
 #include "obstacles/Mine.hpp"
@@ -461,6 +462,14 @@ void Game::spawnEntity(const PlacedEntity& pe) {
             [this]() { return m_player.getCenter(); },
             [this]() { m_player.kill(); }));
 
+    } else if (pe.type == "barbed_wire") {
+        const auto it = m_textures.find("obs_barbed_wire");
+        const sf::Texture* tex = (it != m_textures.end()) ? &it->second : nullptr;
+        m_entities.push_back(std::make_unique<BarbedWire>(
+            tex,
+            pe.position,
+            ek::kSizeBarbedWire));
+
     } else if (pe.type == "blades" || pe.type == "rotating_blades") {
         // Размер лопасти строго фиксирован (ek::kSizeRotatingBlade) — JSON pe.size
         // намеренно игнорируется, чтобы один и тот же объект имел идентичные
@@ -769,6 +778,19 @@ void Game::updatePlaying(float dt) {
             auto* blade = dynamic_cast<RotatingBlade*>(e.get());
             if (!blade || blade->isExpired()) continue;
             if (blade->getBounds().intersects(phb) && !isStandingOn(phb, blade->getBounds())) {
+                m_player.kill();
+                break;
+            }
+        }
+    }
+
+    // ── 8b. Колючая проволока убивает при любом касании ──────────────────────
+    {
+        const sf::FloatRect phb = m_player.getHitbox();
+        for (auto& e : m_entities) {
+            auto* bw = dynamic_cast<BarbedWire*>(e.get());
+            if (!bw || bw->isExpired()) continue;
+            if (bw->getBounds().intersects(phb)) {
                 m_player.kill();
                 break;
             }
