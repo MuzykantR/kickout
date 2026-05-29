@@ -2,6 +2,7 @@
 #include "core/EntityFactory.hpp"
 #include "obstacles/BarbedWire.hpp"
 #include "obstacles/Cannon.hpp"
+#include "obstacles/FerrisWheel.hpp"
 #include "obstacles/LinearSaw.hpp"
 #include "obstacles/Crossbow.hpp"
 #include "obstacles/Mine.hpp"
@@ -463,6 +464,20 @@ void Game::spawnEntity(const PlacedEntity& pe) {
             [this]() { return m_player.getCenter(); },
             [this]() { m_player.kill(); }));
 
+    } else if (pe.type == "ferris_wheel") {
+        const sf::Texture* hubTex   = nullptr;
+        const sf::Texture* cabinTex = nullptr;
+        if (auto it = m_textures.find("obs_ferris_hub");   it != m_textures.end()) hubTex   = &it->second;
+        if (auto it = m_textures.find("obs_ferris_cabin"); it != m_textures.end()) cabinTex = &it->second;
+        const float angularSpeed = (pe.rotationSpeed != 0.f) ? pe.rotationSpeed : 45.f;
+        m_entities.push_back(std::make_unique<FerrisWheel>(
+            hubTex, cabinTex,
+            pe.position,
+            pe.wheelRadius,
+            pe.cabinCount,
+            angularSpeed,
+            ek::kSizeFerrisCabin));
+
     } else if (pe.type == "linear_saw") {
         const auto it = m_textures.find("obs_linear_saw");
         const sf::Texture* tex = (it != m_textures.end()) ? &it->second : nullptr;
@@ -678,6 +693,10 @@ void Game::updatePlaying(float dt) {
             dynamic_cast<WoodPlatform*>(e.get())) {
             m_level.addDynamicSolid(e->getBounds());
         }
+        if (auto* fw = dynamic_cast<FerrisWheel*>(e.get())) {
+            for (int i = 0; i < fw->cabinCount(); ++i)
+                m_level.addDynamicSolid(fw->cabinBounds(i));
+        }
         // RotatingBlade намеренно пропускается — обработка ниже вручную.
     }
 
@@ -768,6 +787,19 @@ void Game::updatePlaying(float dt) {
         } else if (auto* tm = dynamic_cast<TreadmillPlatform*>(e.get())) {
             if (isStandingOn(m_player.getHitbox(), tm->getBounds()))
                 m_player.applyExternalDisplacement(tm->velocity() * dt);
+        }
+    }
+
+    // ── 6c. Кабины Ferris Wheel: перенос игрока линейной скоростью точки ─────
+    for (auto& e : m_entities) {
+        auto* fw = dynamic_cast<FerrisWheel*>(e.get());
+        if (!fw || fw->isExpired()) continue;
+        const sf::FloatRect phb = m_player.getHitbox();
+        for (int i = 0; i < fw->cabinCount(); ++i) {
+            if (isStandingOn(phb, fw->cabinBounds(i))) {
+                m_player.applyExternalDisplacement(fw->cabinLinearVelocity(i) * dt);
+                break;
+            }
         }
     }
 
