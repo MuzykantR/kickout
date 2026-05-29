@@ -16,6 +16,7 @@
 #include "platforms/VanishingPlatform.hpp"
 #include "platforms/ConveyorPlatform.hpp"
 #include "platforms/WoodPlatform.hpp"
+#include "platforms/TreadmillPlatform.hpp"
 #include "world/Camera.hpp"
 #include "world/Level.hpp"
 

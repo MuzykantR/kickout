@@ -395,6 +395,15 @@ void Game::spawnDynamicPlatformsFromLevel() {
                 def.deathTime,
                 m_level.tileSize());
             m_entities.push_back(std::move(wp));
+
+        } else if (def.kind == DynamicPlatformDef::Kind::Treadmill) {
+            auto tm = std::make_unique<TreadmillPlatform>(
+                texPtrOrNull("plat_treadmill"),
+                def.bounds.left, def.bounds.top,
+                def.bounds.width,
+                m_level.tileSize());
+            tm->setVelocity(def.conveyorVelocity);
+            m_entities.push_back(std::move(tm));
         }
     }
 }
@@ -645,6 +654,7 @@ void Game::updatePlaying(float dt) {
         if (dynamic_cast<MovingPlatform*>(e.get()) ||
             dynamic_cast<VanishingPlatform*>(e.get()) ||
             dynamic_cast<ConveyorPlatform*>(e.get()) ||
+            dynamic_cast<TreadmillPlatform*>(e.get()) ||
             dynamic_cast<WoodPlatform*>(e.get())) {
             m_level.addDynamicSolid(e->getBounds());
         }
@@ -729,12 +739,16 @@ void Game::updatePlaying(float dt) {
         }
     }
 
-    // ── 6b. Конвейерные ленты ────────────────────────────────────────────────
+    // ── 6b. Конвейерные ленты и беговые дорожки ──────────────────────────────
     for (auto& e : m_entities) {
-        auto* belt = dynamic_cast<ConveyorPlatform*>(e.get());
-        if (!belt || belt->isExpired()) continue;
-        if (!isStandingOn(m_player.getHitbox(), belt->getBounds())) continue;
-        m_player.applyExternalDisplacement(belt->velocity() * dt);
+        if (e->isExpired()) continue;
+        if (auto* belt = dynamic_cast<ConveyorPlatform*>(e.get())) {
+            if (isStandingOn(m_player.getHitbox(), belt->getBounds()))
+                m_player.applyExternalDisplacement(belt->velocity() * dt);
+        } else if (auto* tm = dynamic_cast<TreadmillPlatform*>(e.get())) {
+            if (isStandingOn(m_player.getHitbox(), tm->getBounds()))
+                m_player.applyExternalDisplacement(tm->velocity() * dt);
+        }
     }
 
     // ── 7. Коллизия снарядов ─────────────────────────────────────────────────
