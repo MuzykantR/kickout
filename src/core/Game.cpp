@@ -307,6 +307,8 @@ bool Game::loadLevelIndex(size_t index) {
     m_bladeSupportActive = false;
     m_bladeCarryVelocity = {0.f, 0.f};
     m_gameWon = false;
+    m_overviewHeld = false;
+    m_camera.snapTo(m_player.getCenter(), m_window.getSize(), m_level.pixelSize());
     return true;
 }
 
@@ -755,7 +757,19 @@ void Game::updatePlaying(float dt) {
 }
 
 void Game::drawPlaying() {
-    m_camera.follow(m_player.getCenter(), m_window.getSize(), m_level.pixelSize());
+    // Камера обновляется в фазе отрисовки, чтобы использовать самый свежий
+    // dt и текущую скорость игрока. Тряска и зум сглаживаются экспоненциально.
+    const float dt = std::min(1.f / 30.f, m_clock.getElapsedTime().asSeconds());
+    (void)dt;
+    // dt у нас уже потрачен в updatePlaying; для камеры используем фиксированный
+    // шаг 1/60, чтобы анимация камеры не зависела от скачков dt.
+    constexpr float kCameraStep = 1.f / 60.f;
+    m_camera.update(kCameraStep,
+                    m_player.getCenter(),
+                    m_player.velocity(),
+                    m_window.getSize(),
+                    m_level.pixelSize(),
+                    m_overviewHeld);
 
     if (m_hasLevelBackground) {
         m_window.clear();
@@ -875,6 +889,9 @@ void Game::processEvents() {
                     sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
     m_input.sprint = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ||
                      sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
+
+    // Зажатая C — обзор всего уровня. (LShift занят спринтом.)
+    m_overviewHeld = sf::Keyboard::isKeyPressed(sf::Keyboard::C);
 
     const bool spaceNow    = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
     m_input.jumpPressed    = spaceNow && !m_prevSpaceDown;

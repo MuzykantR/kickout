@@ -93,6 +93,8 @@ private:
     sf::Sound m_sfx;
     bool      m_sfxReady = false;
 
+    bool m_overviewHeld = false;   // Зажата клавиша обзора всего уровня (C).
+
     // Однопиксельная белая текстура — заглушка для Entity-платформ
     sf::Texture m_whiteTex;
 
