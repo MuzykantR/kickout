@@ -165,6 +165,15 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                 pe.rotationSpeed      = t.value("rotationSpeed",
                                           t.value("bladeSpeed", 180.f));
                 pe.size               = {t.value("w", 0.f), t.value("h", 0.f)};
+
+                if (t.contains("travel") && t["travel"].is_array() && t["travel"].size() >= 2) {
+                    pe.travelOffset = {t["travel"][0].get<float>(),
+                                       t["travel"][1].get<float>()};
+                }
+                pe.travelSpeed = t.value("travelSpeed", 220.f);
+                pe.cabinCount  = t.value("cabins", 4);
+                pe.wheelRadius = t.value("radius", 120.f);
+
                 m_placedEntities.push_back(std::move(pe));
             }
         }

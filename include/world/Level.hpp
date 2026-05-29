@@ -25,6 +25,12 @@ struct PlacedEntity {
     // RotatingBlade
     float        rotationSpeed      = 180.f;
     sf::Vector2f size               = {0.f, 0.f};
+
+    // LinearSaw / FerrisWheel
+    sf::Vector2f travelOffset       = {0.f, 0.f};
+    float        travelSpeed        = 220.f;
+    int          cabinCount         = 4;
+    float        wheelRadius        = 120.f;
 };
 
 // Описание динамической платформы, прочитанное из JSON-поля "dynamic_platforms"

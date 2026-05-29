@@ -2,6 +2,7 @@
 #include "core/EntityFactory.hpp"
 #include "obstacles/BarbedWire.hpp"
 #include "obstacles/Cannon.hpp"
+#include "obstacles/LinearSaw.hpp"
 #include "obstacles/Crossbow.hpp"
 #include "obstacles/Mine.hpp"
 #include "obstacles/Projectile.hpp"
@@ -462,6 +463,16 @@ void Game::spawnEntity(const PlacedEntity& pe) {
             [this]() { return m_player.getCenter(); },
             [this]() { m_player.kill(); }));
 
+    } else if (pe.type == "linear_saw") {
+        const auto it = m_textures.find("obs_linear_saw");
+        const sf::Texture* tex = (it != m_textures.end()) ? &it->second : nullptr;
+        m_entities.push_back(std::make_unique<LinearSaw>(
+            tex,
+            pe.position,
+            pe.travelOffset,
+            pe.travelSpeed,
+            ek::kSizeLinearSaw));
+
     } else if (pe.type == "barbed_wire") {
         const auto it = m_textures.find("obs_barbed_wire");
         const sf::Texture* tex = (it != m_textures.end()) ? &it->second : nullptr;
@@ -784,15 +795,15 @@ void Game::updatePlaying(float dt) {
         }
     }
 
-    // ── 8b. Колючая проволока убивает при любом касании ──────────────────────
+    // ── 8b. Колючая проволока + линейная пила — kill on touch ────────────────
     {
         const sf::FloatRect phb = m_player.getHitbox();
         for (auto& e : m_entities) {
-            auto* bw = dynamic_cast<BarbedWire*>(e.get());
-            if (!bw || bw->isExpired()) continue;
-            if (bw->getBounds().intersects(phb)) {
-                m_player.kill();
-                break;
+            if (e->isExpired()) continue;
+            if (auto* bw = dynamic_cast<BarbedWire*>(e.get())) {
+                if (bw->getBounds().intersects(phb)) { m_player.kill(); break; }
+            } else if (auto* ls = dynamic_cast<LinearSaw*>(e.get())) {
+                if (ls->getBounds().intersects(phb)) { m_player.kill(); break; }
             }
         }
     }
