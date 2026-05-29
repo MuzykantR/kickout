@@ -1,34 +1,28 @@
 #include "platforms/ConveyorPlatform.hpp"
 #include <algorithm>
 
-ConveyorPlatform::ConveyorPlatform(const sf::Texture& endL,
-                                   const sf::Texture& middle,
-                                   const sf::Texture& endR,
+ConveyorPlatform::ConveyorPlatform(const sf::Texture* textureOrNull,
                                    float x, float y,
-                                   int widthInTiles,
-                                   float tileSize)
-    : m_bounds{
-          x,
-          y + tileSize - HitboxHeight,
-          0.f,
-          HitboxHeight} {
-    widthInTiles = std::max(1, widthInTiles);
-    m_bounds.width = static_cast<float>(widthInTiles) * tileSize;
-    m_tiles.reserve(static_cast<size_t>(widthInTiles));
-
-    for (int i = 0; i < widthInTiles; ++i) {
-        const sf::Texture* tex = &middle;
-        if (widthInTiles == 1) {
-            tex = &middle;
-        } else if (i == 0) {
-            tex = &endL;
-        } else if (i == widthInTiles - 1) {
-            tex = &endR;
+                                   float widthPixels,
+                                   float visualHeight)
+    : m_bounds{x, y + visualHeight - HitboxHeight, std::max(widthPixels, 1.f), HitboxHeight},
+      m_visualHeight(visualHeight),
+      m_visualOrigin{x, y} {
+    if (textureOrNull != nullptr) {
+        m_sprite.setTexture(*textureOrNull, true);
+        const sf::Vector2u sz = textureOrNull->getSize();
+        if (sz.x > 0u && sz.y > 0u) {
+            m_sprite.setScale(m_bounds.width  / static_cast<float>(sz.x),
+                              m_visualHeight  / static_cast<float>(sz.y));
         }
-
-        sf::Sprite spr(*tex);
-        spr.setPosition(x + static_cast<float>(i) * tileSize, y);
-        m_tiles.push_back(std::move(spr));
+        m_sprite.setPosition(m_visualOrigin);
+        m_hasTexture = true;
+    } else {
+        m_fallback.setSize({m_bounds.width, m_visualHeight});
+        m_fallback.setPosition(m_visualOrigin);
+        m_fallback.setFillColor(sf::Color(120, 90, 60));     // охра — конвейер
+        m_fallback.setOutlineColor(sf::Color(50, 35, 20));
+        m_fallback.setOutlineThickness(1.f);
     }
 }
 
@@ -38,9 +32,8 @@ void ConveyorPlatform::update(float deltaTime,
 }
 
 void ConveyorPlatform::draw(sf::RenderWindow& window) {
-    for (const auto& tile : m_tiles) {
-        window.draw(tile);
-    }
+    if (m_hasTexture) window.draw(m_sprite);
+    else              window.draw(m_fallback);
 }
 
 sf::FloatRect ConveyorPlatform::getBounds() const {

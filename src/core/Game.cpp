@@ -190,17 +190,22 @@ void Game::loadTextures() {
         {"obs_bullet",     "assets/textures/obstacles/bullet.png"},
         {"obs_mine",       "assets/textures/obstacles/mine.png"},
         {"obs_blades",     "assets/textures/obstacles/blades.png"},
-        {"stub_solid",     "assets/textures/platforms/solid.png"},
-        {"stub_ice",       "assets/textures/platforms/ice.png"},
-        {"stub_spring",    "assets/textures/platforms/spring.png"},
-        {"stub_hazard",    "assets/textures/platforms/hazard.png"},
-        {"stub_finish",    "assets/textures/platforms/finish.png"},
-        {"conv_end_l",     "assets/textures/platforms/end_l.png"},
-        {"conv_middle",    "assets/textures/platforms/middle.png"},
-        {"conv_end_r",     "assets/textures/platforms/end_r.png"},
-        {"vanish_end_l",   "assets/textures/platforms/left_vanish1.png"},
-        {"vanish_mid",     "assets/textures/platforms/middle_vanish1.png"},
-        {"vanish_end_r",   "assets/textures/platforms/right_vanish1.png"},
+        {"obs_barbed_wire","assets/textures/obstacles/barbed_wire.png"},
+        {"obs_linear_saw", "assets/textures/obstacles/linear_saw.png"},
+        {"obs_ferris_hub", "assets/textures/obstacles/ferris_hub.png"},
+        {"obs_ferris_cabin","assets/textures/obstacles/ferris_cabin.png"},
+
+        // ── PLATFORMS (один растягиваемый спрайт на платформу) ─────────────
+        {"plat_solid",     "assets/textures/platforms/solid.png"},
+        {"plat_ice",       "assets/textures/platforms/ice.png"},
+        {"plat_spring",    "assets/textures/platforms/spring.png"},
+        {"plat_hazard",    "assets/textures/platforms/hazard.png"},
+        {"plat_finish",    "assets/textures/platforms/finish.png"},
+        {"plat_wood",      "assets/textures/platforms/wood.png"},
+        {"plat_moving",    "assets/textures/platforms/moving.png"},
+        {"plat_conveyor",  "assets/textures/platforms/conveyor.png"},
+        {"plat_vanishing", "assets/textures/platforms/vanishing.png"},
+        {"plat_treadmill", "assets/textures/platforms/treadmill.png"},
     };
 
     for (const auto& [id, path] : manifest) {
@@ -347,34 +352,36 @@ void Game::spawnPlacedEntitiesFromLevel() {
 }
 
 void Game::spawnDynamicPlatformsFromLevel() {
+    auto texPtrOrNull = [this](const std::string& key) -> const sf::Texture* {
+        auto it = m_textures.find(key);
+        return (it != m_textures.end()) ? &it->second : nullptr;
+    };
+
     for (const auto& def : m_level.dynamicPlatformDefs()) {
         if (def.kind == DynamicPlatformDef::Kind::Moving) {
+            const sf::Texture* tex = texPtrOrNull("plat_moving");
             auto mp = std::make_unique<MovingPlatform>(
-                m_whiteTex,
+                tex ? *tex : m_whiteTex,
                 def.bounds.left, def.bounds.top,
                 def.bounds.width, def.bounds.height);
-            mp->setColor(sf::Color(100, 180, 255));
+            if (!tex) mp->setColor(sf::Color(100, 180, 255));
             mp->setMovement(def.moveOffset, def.moveSpeed);
             m_entities.push_back(std::move(mp));
 
         } else if (def.kind == DynamicPlatformDef::Kind::Vanishing) {
             auto vp = std::make_unique<VanishingPlatform>(
-                getTexture("vanish_end_l"),
-                getTexture("vanish_mid"),
-                getTexture("vanish_end_r"),
+                texPtrOrNull("plat_vanishing"),
                 def.bounds.left, def.bounds.top,
-                def.widthInTiles,
+                def.bounds.width,
                 m_level.tileSize());
             vp->setDeathTime(def.deathTime);
             m_entities.push_back(std::move(vp));
 
         } else if (def.kind == DynamicPlatformDef::Kind::Conveyor) {
             auto cp = std::make_unique<ConveyorPlatform>(
-                getTexture("conv_end_l"),
-                getTexture("conv_middle"),
-                getTexture("conv_end_r"),
+                texPtrOrNull("plat_conveyor"),
                 def.bounds.left, def.bounds.top,
-                def.widthInTiles,
+                def.bounds.width,
                 m_level.tileSize());
             cp->setVelocity(def.conveyorVelocity);
             m_entities.push_back(std::move(cp));

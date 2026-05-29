@@ -107,7 +107,7 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                 obj.kind      = tile;
                 obj.textureId = p.contains("texture") && p["texture"].is_string()
                                     ? p["texture"].get<std::string>()
-                                    : "stub_" + typ;
+                                    : "plat_" + typ;
                 m_platforms.push_back(std::move(obj));
             }
         }
@@ -337,12 +337,16 @@ void Level::draw(sf::RenderTarget& target,
         }
 
         if (tex != nullptr) {
+            // Цельный спрайт растягивается на весь FloatRect — без тайл-репитов.
+            // Один объект — один sf::Sprite, нативная текстура трактуется как
+            // визуальный лист, который натягивается на физический размер платформы.
             sf::Sprite spr(*tex);
+            const sf::Vector2u sz = tex->getSize();
+            if (sz.x > 0u && sz.y > 0u) {
+                spr.setScale(pl.bounds.width  / static_cast<float>(sz.x),
+                             pl.bounds.height / static_cast<float>(sz.y));
+            }
             spr.setPosition(pl.bounds.left, pl.bounds.top);
-            const sf::Vector2f sz{pl.bounds.width, pl.bounds.height};
-            const sf::Vector2f ts(static_cast<float>(tex->getSize().x),
-                                  static_cast<float>(tex->getSize().y));
-            spr.setTextureRect({0, 0, (int)pl.bounds.width, (int)pl.bounds.height});
             target.draw(spr);
         } else {
             sf::RectangleShape sh({std::max(1.f, pl.bounds.width  - 1.f),
