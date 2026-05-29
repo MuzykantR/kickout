@@ -1,40 +1,24 @@
 {
   "version": 1,
   "tileSize": 48,
-  "grid": { "columns": 40, "rows": 10 },
-  "spawn": { "x": 120, "y": 384 },
+  "grid": { "columns": 42, "rows": 10 },
+  "background": "assets/textures/backgorunds/backlevel2.png",
+  "spawn": { "x": 144, "y": 384 },
   "platforms": [
-    { "type": "solid",  "x": 0,    "y": 0,   "w": 1920, "h": 48 },
-    { "type": "solid",  "x": 0,    "y": 432, "w": 1920, "h": 48 },
-    { "type": "solid",  "x": 0,    "y": 48,  "w": 48,   "h": 432 },
-    { "type": "solid",  "x": 1872, "y": 48,  "w": 48,   "h": 432 },
+    { "type": "solid",  "x": 0,    "y": 432, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 1632, "y": 432, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 48,   "h": 432 },
+    { "type": "solid",  "x": 1968, "y": 0,   "w": 48,   "h": 432 },
 
-    { "type": "solid",  "x": 72,   "y": 384, "w": 168,  "h": 48 },
-    { "type": "solid",  "x": 1680, "y": 384, "w": 144,  "h": 48 },
-    { "type": "finish", "x": 1752, "y": 336, "w": 72,   "h": 48 }
+    { "type": "solid",  "x": 432,  "y": 360, "w": 96,   "h": 24 },
+    { "type": "solid",  "x": 1488, "y": 360, "w": 96,   "h": 24 },
+    { "type": "finish", "x": 1824, "y": 384, "w": 96,   "h": 48 }
   ],
   "traps": [],
   "dynamic_platforms": [
-    {
-      "type": "conveyor",
-      "x": 288, "y": 384,
-      "widthInTiles": 10,
-      "speed": 220,
-      "direction": [1, 0]
-    },
-    {
-      "type": "conveyor",
-      "x": 816, "y": 384,
-      "widthInTiles": 8,
-      "speed": 180,
-      "direction": [-1, 0]
-    },
-    {
-      "type": "conveyor",
-      "x": 1248, "y": 384,
-      "widthInTiles": 8,
-      "speed": 280,
-      "direction": [1, 0]
-    }
+    { "type": "conveyor",  "x": 576,  "y": 360, "widthInTiles": 3, "speed": 200, "directionX":  1, "directionY": 0 },
+    { "type": "conveyor",  "x": 864,  "y": 312, "widthInTiles": 3, "speed": 220, "directionX": -1, "directionY": 0 },
+    { "type": "treadmill", "x": 1152, "y": 360, "widthInTiles": 4, "speed": 260, "directionX": -1 },
+    { "type": "treadmill", "x": 1440, "y": 384, "widthInTiles": 2, "speed": 240, "directionX":  1 }
   ]
 }

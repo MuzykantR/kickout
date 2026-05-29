@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "tileSize": 48,
+  "grid": { "columns": 46, "rows": 11 },
+  "background": "assets/textures/backgorunds/backlevel2.png",
+  "spawn": { "x": 144, "y": 432 },
+  "platforms": [
+    { "type": "solid",  "x": 0,    "y": 480, "w": 432,  "h": 48 },
+    { "type": "solid",  "x": 624,  "y": 480, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 1248, "y": 480, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 1872, "y": 480, "w": 336,  "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 48,   "h": 480 },
+    { "type": "solid",  "x": 2160, "y": 0,   "w": 48,   "h": 480 },
+
+    { "type": "solid",  "x": 432,  "y": 360, "w": 192,  "h": 24 },
+    { "type": "solid",  "x": 1008, "y": 312, "w": 192,  "h": 24 },
+    { "type": "solid",  "x": 1632, "y": 360, "w": 192,  "h": 24 },
+    { "type": "finish", "x": 2016, "y": 432, "w": 96,   "h": 48 }
+  ],
+  "traps": [
+    { "type": "linear_saw", "x": 600,  "y": 432, "travel": [ 0,   -240], "travelSpeed": 220 },
+    { "type": "linear_saw", "x": 1200, "y": 432, "travel": [ 0,   -288], "travelSpeed": 240 },
+    { "type": "linear_saw", "x": 1800, "y": 432, "travel": [ 0,   -216], "travelSpeed": 200 },
+    { "type": "blades",     "x": 528,  "y": 312, "rotationSpeed": 220 },
+    { "type": "blades",     "x": 1104, "y": 264, "rotationSpeed": 260 },
+    { "type": "blades",     "x": 1728, "y": 312, "rotationSpeed": 240 }
+  ],
+  "dynamic_platforms": []
+}

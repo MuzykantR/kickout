@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "tileSize": 48,
+  "grid": { "columns": 42, "rows": 10 },
+  "background": "assets/textures/backgorunds/backlevel2.png",
+  "spawn": { "x": 144, "y": 384 },
+  "platforms": [
+    { "type": "solid",  "x": 0,    "y": 432, "w": 1248, "h": 48 },
+    { "type": "solid",  "x": 1392, "y": 432, "w": 624,  "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 48,   "h": 432 },
+    { "type": "solid",  "x": 1968, "y": 0,   "w": 48,   "h": 432 },
+
+    { "type": "solid",  "x": 432,  "y": 312, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 768,  "y": 264, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1104, "y": 312, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1488, "y": 312, "w": 192,  "h": 24 },
+    { "type": "finish", "x": 1824, "y": 384, "w": 96,   "h": 48 }
+  ],
+  "traps": [
+    { "type": "crossbow",      "x": 1872, "y": 312, "fireInterval": 1.6, "projectileVelocity": [-520, 0] },
+    { "type": "crossbow",      "x": 96,   "y": 264, "fireInterval": 1.8, "projectileVelocity": [ 520, 0] },
+    { "type": "crossbow_fast", "x": 1872, "y": 144, "fireInterval": 0.9, "projectileVelocity": [-650, 0] },
+    { "type": "cannon",        "x": 720,  "y": 192, "fireInterval": 2.4, "angle": 25, "projectileSpeed": 540, "projectileGravity": 600 }
+  ],
+  "dynamic_platforms": []
+}

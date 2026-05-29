@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "tileSize": 48,
+  "grid": { "columns": 50, "rows": 12 },
+  "background": "assets/textures/backgorunds/backlevel2.png",
+  "spawn": { "x": 144, "y": 480 },
+  "platforms": [
+    { "type": "solid",  "x": 0,    "y": 528, "w": 432,  "h": 48 },
+    { "type": "solid",  "x": 720,  "y": 528, "w": 240,  "h": 48 },
+    { "type": "solid",  "x": 1248, "y": 528, "w": 240,  "h": 48 },
+    { "type": "solid",  "x": 1776, "y": 528, "w": 240,  "h": 48 },
+    { "type": "solid",  "x": 2208, "y": 528, "w": 192,  "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 48,   "h": 528 },
+    { "type": "solid",  "x": 2352, "y": 0,   "w": 48,   "h": 528 },
+
+    { "type": "ice",    "x": 432,  "y": 528, "w": 288,  "h": 48 },
+    { "type": "solid",  "x": 432,  "y": 384, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 720,  "y": 336, "w": 144,  "h": 24 },
+    { "type": "spring", "x": 1008, "y": 504, "w": 96,   "h": 24 },
+    { "type": "solid",  "x": 1968, "y": 360, "w": 144,  "h": 24 },
+    { "type": "finish", "x": 2256, "y": 480, "w": 96,   "h": 48 }
+  ],
+  "traps": [
+    { "type": "crossbow",     "x": 96,   "y": 432, "fireInterval": 1.3, "projectileVelocity": [ 600, 0] },
+    { "type": "turret",       "x": 2304, "y": 96,  "fireInterval": 1.5, "projectileSpeed": 560 },
+    { "type": "mine",         "x": 1392, "y": 504, "triggerRadius": 80, "armDelay": 0.8, "blastRadius": 110 },
+    { "type": "barbed_wire",  "x": 552,  "y": 552 },
+    { "type": "barbed_wire",  "x": 1488, "y": 552 },
+    { "type": "linear_saw",   "x": 960,  "y": 432, "travel": [0, -264], "travelSpeed": 240 },
+    { "type": "linear_saw",   "x": 1800, "y": 408, "travel": [288, 0],  "travelSpeed": 210 },
+    { "type": "blades",       "x": 504,  "y": 336, "rotationSpeed": 260 },
+    { "type": "blades",       "x": 792,  "y": 288, "rotationSpeed": 280 },
+    { "type": "ferris_wheel", "x": 1632, "y": 312, "radius": 168, "cabins": 5, "rotationSpeed": 50 }
+  ],
+  "dynamic_platforms": [
+    { "type": "wood",      "x": 1104, "y": 408, "widthInTiles": 2, "lifeTime": 0.8 },
+    { "type": "vanishing", "x": 2112, "y": 432, "widthInTiles": 2, "deathTime": 1.1 },
+    { "type": "treadmill", "x": 1248, "y": 480, "widthInTiles": 3, "speed": 260, "directionX": -1 },
+    { "type": "conveyor",  "x": 1968, "y": 480, "widthInTiles": 2, "speed": 220, "directionX":  1, "directionY": 0 },
+    { "type": "moving",    "x": 1392, "y": 360, "w": 144, "h": 24, "offsetX": 384, "offsetY": 0, "speed": 130 }
+  ]
+}

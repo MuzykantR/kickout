@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "tileSize": 48,
+  "grid": { "columns": 44, "rows": 11 },
+  "background": "assets/textures/backgorunds/backlevel2.png",
+  "spawn": { "x": 144, "y": 432 },
+  "platforms": [
+    { "type": "solid",  "x": 0,    "y": 480, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 1824, "y": 480, "w": 288,  "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 48,   "h": 480 },
+    { "type": "solid",  "x": 2064, "y": 0,   "w": 48,   "h": 480 },
+
+    { "type": "solid",  "x": 384,  "y": 384, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1632, "y": 384, "w": 192,  "h": 24 },
+    { "type": "finish", "x": 1920, "y": 432, "w": 96,   "h": 48 }
+  ],
+  "traps": [
+    { "type": "barbed_wire", "x": 528,  "y": 504 },
+    { "type": "barbed_wire", "x": 768,  "y": 504 },
+    { "type": "barbed_wire", "x": 1056, "y": 504 },
+    { "type": "barbed_wire", "x": 1344, "y": 504 },
+    { "type": "barbed_wire", "x": 1632, "y": 504 }
+  ],
+  "dynamic_platforms": [
+    { "type": "vanishing", "x": 576,  "y": 384, "widthInTiles": 2, "deathTime": 1.4 },
+    { "type": "vanishing", "x": 816,  "y": 336, "widthInTiles": 2, "deathTime": 1.2 },
+    { "type": "vanishing", "x": 1056, "y": 288, "widthInTiles": 2, "deathTime": 1.0 },
+    { "type": "vanishing", "x": 1296, "y": 336, "widthInTiles": 2, "deathTime": 1.1 },
+    { "type": "vanishing", "x": 1488, "y": 384, "widthInTiles": 2, "deathTime": 1.3 }
+  ]
+}

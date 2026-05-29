@@ -1,61 +1,23 @@
 {
   "version": 1,
   "tileSize": 48,
-  "grid": { "columns": 40, "rows": 10 },
-  "background": "assets/textures/backgorunds/backlevel2.png",
-  "spawn": { "x": 120, "y": 384 },
+  "grid": { "columns": 35, "rows": 9 },
+  "background": "assets/textures/backgorunds/backlevel1.png",
+  "spawn": { "x": 144, "y": 336 },
   "platforms": [
-    { "type": "solid",  "x": 0,    "y": 0,   "w": 1920, "h": 48 },
-    { "type": "solid",  "x": 0,    "y": 432, "w": 1920, "h": 48 },
-    { "type": "solid",  "x": 0,    "y": 48,  "w": 48,   "h": 432 },
-    { "type": "solid",  "x": 1872, "y": 48,  "w": 48,   "h": 432 },
+    { "type": "solid",  "x": 0,    "y": 384, "w": 528,  "h": 48 },
+    { "type": "ice",    "x": 528,  "y": 384, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 1056, "y": 384, "w": 240,  "h": 48 },
+    { "type": "solid",  "x": 1392, "y": 384, "w": 288,  "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 48,   "h": 384 },
+    { "type": "solid",  "x": 1632, "y": 0,   "w": 48,   "h": 384 },
 
-    { "type": "solid",  "x": 48,   "y": 360, "w": 192,  "h": 24 },
-    { "type": "ice",    "x": 336,  "y": 336, "w": 192,  "h": 24 },
-    { "type": "solid",  "x": 624,  "y": 288, "w": 192,  "h": 24 },
-    { "type": "solid",  "x": 1200, "y": 264, "w": 144,  "h": 24 },
-    { "type": "solid",  "x": 1632, "y": 312, "w": 144,  "h": 24 },
-    { "type": "finish", "x": 1776, "y": 264, "w": 48,   "h": 48 }
+    { "type": "spring", "x": 432,  "y": 336, "w": 96,   "h": 24 },
+    { "type": "solid",  "x": 720,  "y": 240, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 960,  "y": 192, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1248, "y": 192, "w": 144,  "h": 24 },
+    { "type": "finish", "x": 1536, "y": 336, "w": 96,   "h": 48 }
   ],
-  "traps": [
-    { "type": "crossbow", "x": 1450, "y": 228, "fireInterval": 2.2, "projectileVelocity": [-300, 0] },
-    { "type": "blades",   "x": 960,  "y": 324, "rotationSpeed": 120, "w": 160, "h": 160 },
-    {
-      "type": "cannon",
-      "x": 480, "y": 340,
-      "fireInterval": 2.5,
-      "angle": -35,
-      "projectileSpeed": 520,
-      "projectileGravity": 900
-    },
-    {
-      "type": "turret",
-      "x": 1200, "y": 220,
-      "fireInterval": 2.0,
-      "projectileSpeed": 380,
-      "projectileGravity": 0
-    },
-    {
-      "type": "mine",
-      "x": 720, "y": 390,
-      "triggerRadius": 90,
-      "armDelay": 1.0,
-      "blastRadius": 130
-    }
-  ],
-  "dynamic_platforms": [
-    {
-      "type": "moving",
-      "x": 864, "y": 300, "w": 144, "h": 24,
-      "offsetX": 0, "offsetY": -120,
-      "speed": 85
-    },
-    {
-      "type": "moving",
-      "x": 1392, "y": 300, "w": 144, "h": 24,
-      "offsetX": 120, "offsetY": 0,
-      "speed": 95
-    },
-    { "type": "vanishing", "x": 1056, "y": 253, "widthInTiles": 3, "deathTime": 1.7 }
-  ]
+  "traps": [],
+  "dynamic_platforms": []
 }

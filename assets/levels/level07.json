@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "tileSize": 48,
+  "grid": { "columns": 42, "rows": 10 },
+  "background": "assets/textures/backgorunds/backlevel2.png",
+  "spawn": { "x": 144, "y": 384 },
+  "platforms": [
+    { "type": "solid",  "x": 0,    "y": 432, "w": 432,  "h": 48 },
+    { "type": "solid",  "x": 624,  "y": 432, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 1200, "y": 432, "w": 384,  "h": 48 },
+    { "type": "solid",  "x": 1776, "y": 432, "w": 240,  "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 48,   "h": 432 },
+    { "type": "solid",  "x": 1968, "y": 0,   "w": 48,   "h": 432 },
+
+    { "type": "solid",  "x": 384,  "y": 312, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 720,  "y": 264, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1056, "y": 264, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1488, "y": 312, "w": 144,  "h": 24 },
+    { "type": "finish", "x": 1824, "y": 384, "w": 96,   "h": 48 }
+  ],
+  "traps": [
+    { "type": "turret", "x": 96,   "y": 96,  "fireInterval": 1.4, "projectileSpeed": 520, "projectileGravity": 0 },
+    { "type": "turret", "x": 1872, "y": 96,  "fireInterval": 1.6, "projectileSpeed": 540, "projectileGravity": 0 },
+    { "type": "mine",   "x": 720,  "y": 408, "triggerRadius": 90, "armDelay": 1.0, "blastRadius": 120 },
+    { "type": "mine",   "x": 1296, "y": 408, "triggerRadius": 90, "armDelay": 1.0, "blastRadius": 120 },
+    { "type": "mine",   "x": 1056, "y": 240, "triggerRadius": 80, "armDelay": 1.0, "blastRadius": 110 }
+  ],
+  "dynamic_platforms": []
+}
