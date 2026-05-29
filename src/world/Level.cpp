@@ -52,10 +52,15 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
     m_platforms.clear();
     m_finishTriggers.clear();
     m_dynPlatformDefs.clear();
+    m_backgroundPath.clear();
 
     try {
         nlohmann::json j = nlohmann::json::parse(jsonUtf8);
         (void)j.value("version", 1);
+
+        if (j.contains("background") && j["background"].is_string()) {
+            m_backgroundPath = j["background"].get<std::string>();
+        }
 
         m_tileSize = j.value("tileSize", 48.f);
         if (m_tileSize <= 0.f) {
@@ -154,6 +159,12 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                         ? sf::Vector2f{t["projectileVelocity"][0].get<float>(),
                                        t["projectileVelocity"][1].get<float>()}
                         : sf::Vector2f{600.f, 0.f};
+                } else if (pe.type == "blades" || pe.type == "rotating_blades") {
+                    pe.rotationSpeed = t.value("rotationSpeed", t.value("bladeSpeed", 180.f));
+                    pe.size = {
+                        t.value("w", 0.f),
+                        t.value("h", 0.f)
+                    };
                 } else {
                     pe.fireInterval         = hasFi ? t["fireInterval"].get<float>() : 1.5f;
                     pe.projectileVelocity   = hasPv
@@ -173,25 +184,64 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                     return false;
                 }
                 const std::string typ = dp["type"].get<std::string>();
-                const float pw = dp.value("w", 0.f);
-                const float ph = dp.value("h", 0.f);
-                if (pw <= 0.f || ph <= 0.f) {
-                    outError = debugName + ": dynamic_platform with non-positive size";
-                    return false;
-                }
                 DynamicPlatformDef def;
-                def.bounds = {dp.value("x", 0.f), dp.value("y", 0.f), pw, ph};
+                const float px = dp.value("x", 0.f);
+                const float py = dp.value("y", 0.f);
 
-                if (typ == "moving") {
-                    def.kind        = DynamicPlatformDef::Kind::Moving;
-                    def.moveOffset  = {dp.value("offsetX", 0.f), dp.value("offsetY", 0.f)};
-                    def.moveSpeed   = dp.value("speed", 100.f);
+                if (typ == "conveyor" || typ == "conveyor_belt") {
+                    def.kind = DynamicPlatformDef::Kind::Conveyor;
+                    def.widthInTiles = dp.value("widthInTiles", 1);
+                    if (def.widthInTiles <= 0) {
+                        outError = debugName + ": conveyor widthInTiles must be positive";
+                        return false;
+                    }
+                    const float beltW = m_tileSize * static_cast<float>(def.widthInTiles);
+                    def.bounds = {px, py, beltW, m_tileSize};
+
+                    const float speed = dp.value("speed", 150.f);
+                    float dirX = 1.f;
+                    float dirY = 0.f;
+                    if (dp.contains("direction") && dp["direction"].is_array() &&
+                        dp["direction"].size() >= 2) {
+                        dirX = dp["direction"][0].get<float>();
+                        dirY = dp["direction"][1].get<float>();
+                    } else {
+                        dirX = dp.value("directionX", 1.f);
+                        dirY = dp.value("directionY", 0.f);
+                    }
+                    const float len = std::sqrt(dirX * dirX + dirY * dirY);
+                    if (len > 1e-4f) {
+                        dirX /= len;
+                        dirY /= len;
+                    }
+                    def.conveyorVelocity = {dirX * speed, dirY * speed};
                 } else if (typ == "vanishing") {
-                    def.kind     = DynamicPlatformDef::Kind::Vanishing;
+                    def.kind = DynamicPlatformDef::Kind::Vanishing;
+                    def.widthInTiles = dp.value("widthInTiles", 1);
+                    if (def.widthInTiles <= 0) {
+                        outError = debugName + ": vanishing widthInTiles must be positive";
+                        return false;
+                    }
+                    const float beltW = m_tileSize * static_cast<float>(def.widthInTiles);
+                    def.bounds = {px, py, beltW, m_tileSize};
                     def.deathTime = dp.value("deathTime", 1.5f);
                 } else {
-                    outError = debugName + ": unknown dynamic_platform type: " + typ;
-                    return false;
+                    const float pw = dp.value("w", 0.f);
+                    const float ph = dp.value("h", 0.f);
+                    if (pw <= 0.f || ph <= 0.f) {
+                        outError = debugName + ": dynamic_platform with non-positive size";
+                        return false;
+                    }
+                    def.bounds = {px, py, pw, ph};
+
+                    if (typ == "moving") {
+                        def.kind       = DynamicPlatformDef::Kind::Moving;
+                        def.moveOffset = {dp.value("offsetX", 0.f), dp.value("offsetY", 0.f)};
+                        def.moveSpeed  = dp.value("speed", 100.f);
+                    } else {
+                        outError = debugName + ": unknown dynamic_platform type: " + typ;
+                        return false;
+                    }
                 }
                 m_dynPlatformDefs.push_back(std::move(def));
             }

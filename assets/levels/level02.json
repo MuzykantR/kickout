@@ -1,266 +1,39 @@
 {
   "version": 1,
-  "tileSize": 48.0,
-  "grid": {
-    "columns": 40,
-    "rows": 10
-  },
-  "spawn": {
-    "x": 72.0,
-    "y": 120.0
-  },
+  "tileSize": 48,
+  "grid": { "columns": 40, "rows": 10 },
+  "background": "assets/textures/backgorunds/backlevel2.png",
+  "spawn": { "x": 120, "y": 384 },
   "platforms": [
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 0.0,
-      "w": 1920.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 48.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 48.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 96.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 96.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 144.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 144.0,
-      "y": 144.0,
-      "w": 144.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 144.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 192.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 144.0,
-      "y": 192.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 192.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 240.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 144.0,
-      "y": 240.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 288.0,
-      "y": 240.0,
-      "w": 192.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 240.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 288.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 144.0,
-      "y": 288.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "ice",
-      "x": 288.0,
-      "y": 288.0,
-      "w": 192.0,
-      "h": 48.0,
-      "texture": "stub_ice"
-    },
-    {
-      "type": "solid",
-      "x": 480.0,
-      "y": 288.0,
-      "w": 192.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 288.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 336.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 144.0,
-      "y": 336.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 720.0,
-      "y": 336.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 336.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 384.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 144.0,
-      "y": 384.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 720.0,
-      "y": 384.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "finish",
-      "x": 1680.0,
-      "y": 384.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_finish"
-    },
-    {
-      "type": "solid",
-      "x": 1872.0,
-      "y": 384.0,
-      "w": 48.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    },
-    {
-      "type": "solid",
-      "x": 0.0,
-      "y": 432.0,
-      "w": 1920.0,
-      "h": 48.0,
-      "texture": "stub_solid"
-    }
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 1920, "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 432, "w": 1920, "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 48,  "w": 48,   "h": 432 },
+    { "type": "solid",  "x": 1872, "y": 48,  "w": 48,   "h": 432 },
+
+    { "type": "solid",  "x": 48,   "y": 360, "w": 192,  "h": 24 },
+    { "type": "ice",    "x": 336,  "y": 336, "w": 192,  "h": 24 },
+    { "type": "solid",  "x": 624,  "y": 288, "w": 192,  "h": 24 },
+    { "type": "solid",  "x": 1200, "y": 264, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1632, "y": 312, "w": 144,  "h": 24 },
+    { "type": "finish", "x": 1776, "y": 264, "w": 48,   "h": 48 }
   ],
   "traps": [
+    { "type": "crossbow", "x": 1450, "y": 228, "fireInterval": 2.2, "projectileVelocity": [-300, 0] },
+    { "type": "blades", "x": 960, "y": 324, "rotationSpeed": 120, "w": 160, "h": 160 }
+  ],
+  "dynamic_platforms": [
     {
-      "type": "crossbow_fast",
-      "x": 960.0,
-      "y": 200.0,
-      "fireInterval": 0.85,
-      "projectileVelocity": [
-        600,
-        0
-      ]
-    }
+      "type": "moving",
+      "x": 864, "y": 300, "w": 144, "h": 24,
+      "offsetX": 0, "offsetY": -120,
+      "speed": 85
+    },
+    {
+      "type": "moving",
+      "x": 1392, "y": 300, "w": 144, "h": 24,
+      "offsetX": 120, "offsetY": 0,
+      "speed": 95
+    },
+    { "type": "vanishing", "x": 1056, "y": 253, "widthInTiles": 3, "deathTime": 1.7 }
   ]
 }

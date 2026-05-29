@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "tileSize": 48,
+  "grid": { "columns": 40, "rows": 10 },
+  "spawn": { "x": 96, "y": 384 },
+  "platforms": [
+    { "type": "solid",  "x": 0,    "y": 0,   "w": 1920, "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 432, "w": 1920, "h": 48 },
+    { "type": "solid",  "x": 0,    "y": 48,  "w": 48,   "h": 432 },
+    { "type": "solid",  "x": 1872, "y": 48,  "w": 48,   "h": 432 },
+
+    { "type": "solid",  "x": 48,   "y": 360, "w": 192,  "h": 24 },
+    { "type": "solid",  "x": 336,  "y": 312, "w": 192,  "h": 24 },
+    { "type": "ice",    "x": 624,  "y": 288, "w": 144,  "h": 24 },
+    { "type": "solid",  "x": 1488, "y": 264, "w": 192,  "h": 24 },
+    { "type": "finish", "x": 1728, "y": 216, "w": 96,   "h": 48 }
+  ],
+  "traps": [
+    { "type": "blades", "x": 900, "y": 300 },
+    { "type": "blades", "x": 1320, "y": 276 }
+  ],
+  "dynamic_platforms": [
+    {
+      "type": "moving",
+      "x": 816, "y": 312, "w": 144, "h": 24,
+      "offsetX": 192, "offsetY": 0,
+      "speed": 100
+    },
+    {
+      "type": "moving",
+      "x": 1104, "y": 264, "w": 144, "h": 24,
+      "offsetX": 0, "offsetY": -96,
+      "speed": 80
+    },
+    { "type": "vanishing", "x": 1296, "y": 253, "widthInTiles": 3, "deathTime": 1.6 },
+    { "type": "vanishing", "x": 1440, "y": 253, "widthInTiles": 3, "deathTime": 1.4 }
+  ]
+}

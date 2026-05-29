@@ -2,43 +2,45 @@
   "version": 1,
   "tileSize": 48,
   "grid": { "columns": 40, "rows": 10 },
-  "spawn": { "x": 144, "y": 402 },
+  "background": "assets/textures/backgorunds/backlevel1.png",
+  "spawn": { "x": 120, "y": 384 },
   "platforms": [
     { "type": "solid",  "x": 0,    "y": 0,   "w": 1920, "h": 48 },
     { "type": "solid",  "x": 0,    "y": 432, "w": 1920, "h": 48 },
     { "type": "solid",  "x": 0,    "y": 48,  "w": 48,   "h": 432 },
     { "type": "solid",  "x": 1872, "y": 48,  "w": 48,   "h": 432 },
 
-    { "type": "solid",  "x": 48,   "y": 360, "w": 240,  "h": 24 },
-
-    { "type": "hazard", "x": 336,  "y": 408, "w": 192,  "h": 24 },
-
-    { "type": "solid",  "x": 528,  "y": 312, "w": 192,  "h": 24 },
-
-    { "type": "ice",    "x": 816,  "y": 264, "w": 192,  "h": 24 },
-
-    { "type": "solid",  "x": 1344, "y": 312, "w": 144,  "h": 24 },
-    { "type": "solid",  "x": 1584, "y": 360, "w": 240,  "h": 24 },
-
-    { "type": "finish", "x": 1680, "y": 312, "w": 96,   "h": 48 }
+    { "type": "solid",  "x": 72,   "y": 360, "w": 216,  "h": 24 },
+    { "type": "solid",  "x": 360,  "y": 336, "w": 120,  "h": 24 },
+    { "type": "solid",  "x": 552,  "y": 312, "w": 96,   "h": 24 },
+    { "type": "spring", "x": 720,  "y": 288, "w": 96,   "h": 24 },
+    { "type": "ice",    "x": 960,  "y": 312, "w": 240,  "h": 24 },
+    { "type": "solid",  "x": 1344, "y": 288, "w": 120,  "h": 24 },
+    { "type": "solid",  "x": 1536, "y": 264, "w": 192,  "h": 24 },
+    { "type": "finish", "x": 1752, "y": 216, "w": 96,   "h": 48 }
   ],
-  "traps": [
-    {
-      "type": "crossbow",
-      "x": 600, "y": 264,
-      "fireInterval": 1.8,
-      "projectileVelocity": [350, 0]
-    }
-  ],
+  "traps": [],
   "dynamic_platforms": [
     {
       "type": "moving",
-      "x": 288, "y": 336, "w": 144, "h": 24,
-      "offsetX": 192, "offsetY": 0,
-      "speed": 110
+      "x": 480, "y": 264, "w": 120, "h": 24,
+      "offsetX": 0, "offsetY": 96,
+      "speed": 75
     },
-    { "type": "vanishing", "x": 1056, "y": 264, "w": 96, "h": 24, "deathTime": 1.5 },
-    { "type": "vanishing", "x": 1152, "y": 288, "w": 96, "h": 24, "deathTime": 1.3 },
-    { "type": "vanishing", "x": 1248, "y": 312, "w": 96, "h": 24, "deathTime": 1.1 }
+    {
+      "type": "moving",
+      "x": 1248, "y": 336, "w": 120, "h": 24,
+      "offsetX": 144, "offsetY": 0,
+      "speed": 85
+    },
+    { "type": "vanishing", "x": 288,  "y": 277, "widthInTiles": 3, "deathTime": 2.2 },
+    { "type": "vanishing", "x": 432,  "y": 253, "widthInTiles": 3, "deathTime": 2.0 },
+    { "type": "vanishing", "x": 576,  "y": 229, "widthInTiles": 3, "deathTime": 1.8 },
+    { "type": "vanishing", "x": 720,  "y": 205, "widthInTiles": 3, "deathTime": 1.6 },
+    { "type": "vanishing", "x": 864,  "y": 229, "widthInTiles": 3, "deathTime": 1.9 },
+    { "type": "vanishing", "x": 1008, "y": 205, "widthInTiles": 3, "deathTime": 1.7 },
+    { "type": "vanishing", "x": 1152, "y": 181, "widthInTiles": 3, "deathTime": 1.5 },
+    { "type": "vanishing", "x": 1488, "y": 229, "widthInTiles": 3, "deathTime": 1.8 },
+    { "type": "vanishing", "x": 1632, "y": 205, "widthInTiles": 3, "deathTime": 1.6 }
   ]
 }
