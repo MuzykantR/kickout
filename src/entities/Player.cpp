@@ -54,6 +54,27 @@ void Player::addExternalVelocity(const sf::Vector2f& deltaVelocity) {
     m_velocity += deltaVelocity;
 }
 
+// ─── Blade platform helpers ───────────────────────────────────────────────────
+
+void Player::zeroFallVelocity() {
+    // Обнуляем только нисходящую составляющую (vy > 0 = вниз),
+    // чтобы игрок не "провалился" сквозь лопасть после ручного снапа.
+    if (m_velocity.y > 0.f)
+        m_velocity.y = 0.f;
+}
+
+void Player::forceOnGround() {
+    // Принудительно сообщаем физике: "мы на земле". Следующий тик player::update()
+    // прочитает m_onGround = true и применит наземные параметры (ускорение, трение,
+    // сброс койот-таймера). Устанавливаем и m_wasOnGround, чтобы не сработал
+    // пружинный триггер (он проверяет переход false→true).
+    m_onGround    = true;
+    m_wasOnGround = true;
+    m_coyoteTimer = kCoyoteTime;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 void Player::kill() {
     if (m_dead || m_finishedLevel) {
         return;

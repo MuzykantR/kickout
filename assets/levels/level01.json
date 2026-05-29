@@ -33,14 +33,14 @@
       "offsetX": 144, "offsetY": 0,
       "speed": 85
     },
-    { "type": "vanishing", "x": 288,  "y": 288, "w": 80, "h": 24, "deathTime": 2.2 },
-    { "type": "vanishing", "x": 408,  "y": 264, "w": 80, "h": 24, "deathTime": 2.0 },
-    { "type": "vanishing", "x": 528,  "y": 240, "w": 80, "h": 24, "deathTime": 1.8 },
-    { "type": "vanishing", "x": 648,  "y": 216, "w": 80, "h": 24, "deathTime": 1.6 },
-    { "type": "vanishing", "x": 864,  "y": 240, "w": 80, "h": 24, "deathTime": 1.9 },
-    { "type": "vanishing", "x": 984,  "y": 216, "w": 80, "h": 24, "deathTime": 1.7 },
-    { "type": "vanishing", "x": 1104, "y": 192, "w": 80, "h": 24, "deathTime": 1.5 },
-    { "type": "vanishing", "x": 1488, "y": 240, "w": 72, "h": 24, "deathTime": 1.8 },
-    { "type": "vanishing", "x": 1584, "y": 216, "w": 72, "h": 24, "deathTime": 1.6 }
+    { "type": "vanishing", "x": 288,  "y": 277, "widthInTiles": 3, "deathTime": 2.2 },
+    { "type": "vanishing", "x": 432,  "y": 253, "widthInTiles": 3, "deathTime": 2.0 },
+    { "type": "vanishing", "x": 576,  "y": 229, "widthInTiles": 3, "deathTime": 1.8 },
+    { "type": "vanishing", "x": 720,  "y": 205, "widthInTiles": 3, "deathTime": 1.6 },
+    { "type": "vanishing", "x": 864,  "y": 229, "widthInTiles": 3, "deathTime": 1.9 },
+    { "type": "vanishing", "x": 1008, "y": 205, "widthInTiles": 3, "deathTime": 1.7 },
+    { "type": "vanishing", "x": 1152, "y": 181, "widthInTiles": 3, "deathTime": 1.5 },
+    { "type": "vanishing", "x": 1488, "y": 229, "widthInTiles": 3, "deathTime": 1.8 },
+    { "type": "vanishing", "x": 1632, "y": 205, "widthInTiles": 3, "deathTime": 1.6 }
   ]
 }

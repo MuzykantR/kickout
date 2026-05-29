@@ -34,6 +34,6 @@
       "offsetX": 120, "offsetY": 0,
       "speed": 95
     },
-    { "type": "vanishing", "x": 1056, "y": 264, "w": 96, "h": 24, "deathTime": 1.7 }
+    { "type": "vanishing", "x": 1056, "y": 253, "widthInTiles": 3, "deathTime": 1.7 }
   ]
 }

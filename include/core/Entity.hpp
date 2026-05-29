@@ -39,7 +39,7 @@ public:
     }
     
     // Хитбокс объекта
-    sf::FloatRect getBounds() const { return m_sprite.getGlobalBounds(); }
+    virtual sf::FloatRect getBounds() const { return m_sprite.getGlobalBounds(); }
 
 protected:
     sf::Sprite m_sprite;
