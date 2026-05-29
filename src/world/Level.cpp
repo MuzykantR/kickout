@@ -218,6 +218,16 @@ bool Level::loadFromJsonString(const std::string& jsonUtf8, const std::string& d
                     const float beltW = m_tileSize * static_cast<float>(def.widthInTiles);
                     def.bounds = {px, py, beltW, m_tileSize};
                     def.deathTime = dp.value("deathTime", 1.5f);
+                } else if (typ == "wood") {
+                    def.kind = DynamicPlatformDef::Kind::Wood;
+                    def.widthInTiles = dp.value("widthInTiles", 2);
+                    if (def.widthInTiles <= 0) {
+                        outError = debugName + ": wood widthInTiles must be positive";
+                        return false;
+                    }
+                    const float w = m_tileSize * static_cast<float>(def.widthInTiles);
+                    def.bounds = {px, py, w, m_tileSize};
+                    def.deathTime = dp.value("lifeTime", 1.0f);
                 } else {
                     const float pw = dp.value("w", 0.f);
                     const float ph = dp.value("h", 0.f);

@@ -386,6 +386,15 @@ void Game::spawnDynamicPlatformsFromLevel() {
                 m_level.tileSize());
             cp->setVelocity(def.conveyorVelocity);
             m_entities.push_back(std::move(cp));
+
+        } else if (def.kind == DynamicPlatformDef::Kind::Wood) {
+            auto wp = std::make_unique<WoodPlatform>(
+                texPtrOrNull("plat_wood"),
+                def.bounds.left, def.bounds.top,
+                def.bounds.width,
+                def.deathTime,
+                m_level.tileSize());
+            m_entities.push_back(std::move(wp));
         }
     }
 }
@@ -635,7 +644,8 @@ void Game::updatePlaying(float dt) {
         if (e->isExpired()) continue;
         if (dynamic_cast<MovingPlatform*>(e.get()) ||
             dynamic_cast<VanishingPlatform*>(e.get()) ||
-            dynamic_cast<ConveyorPlatform*>(e.get())) {
+            dynamic_cast<ConveyorPlatform*>(e.get()) ||
+            dynamic_cast<WoodPlatform*>(e.get())) {
             m_level.addDynamicSolid(e->getBounds());
         }
         // RotatingBlade намеренно пропускается — обработка ниже вручную.
@@ -708,13 +718,14 @@ void Game::updatePlaying(float dt) {
         }
     }
 
-    // ── 6. Исчезающие платформы ──────────────────────────────────────────────
+    // ── 6. Исчезающие платформы + деревянные ────────────────────────────────
     const sf::FloatRect playerHitbox = m_player.getHitbox();
     for (auto& e : m_entities) {
-        auto* vp = dynamic_cast<VanishingPlatform*>(e.get());
-        if (!vp || vp->isExpired()) continue;
-        if (isStandingOn(playerHitbox, vp->getBounds())) {
-            vp->onCollision();
+        if (e->isExpired()) continue;
+        if (auto* vp = dynamic_cast<VanishingPlatform*>(e.get())) {
+            if (isStandingOn(playerHitbox, vp->getBounds())) vp->onCollision();
+        } else if (auto* wp = dynamic_cast<WoodPlatform*>(e.get())) {
+            if (isStandingOn(playerHitbox, wp->getBounds())) wp->onCollision();
         }
     }
 
