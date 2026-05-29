@@ -1,4 +1,5 @@
 #include "core/Game.hpp"
+#include "core/EntityFactory.hpp"
 #include "obstacles/Cannon.hpp"
 #include "obstacles/Crossbow.hpp"
 #include "obstacles/Mine.hpp"
@@ -443,11 +444,14 @@ void Game::spawnEntity(const PlacedEntity& pe) {
             [this]() { m_player.kill(); }));
 
     } else if (pe.type == "blades" || pe.type == "rotating_blades") {
+        // Размер лопасти строго фиксирован (ek::kSizeRotatingBlade) — JSON pe.size
+        // намеренно игнорируется, чтобы один и тот же объект имел идентичные
+        // габариты на всех 10 уровнях (требование Модуля 4).
         m_entities.push_back(std::make_unique<RotatingBlade>(
             tryGetTexture("obs_blades"),
             pe.position,
             pe.rotationSpeed,
-            pe.size));
+            ek::kSizeRotatingBlade));
     } else {
         std::cerr << "[Factory] Unknown trap type: " << pe.type << std::endl;
     }
