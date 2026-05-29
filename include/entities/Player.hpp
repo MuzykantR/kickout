@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <map>
+#include <string>
 #include "core/SpriteAnimator.hpp"
 #include "core/InputState.hpp"
 #include "world/Level.hpp"
@@ -13,17 +15,23 @@ public:
     void update(float dt, const Level& level, const InputState& input);
     void draw(sf::RenderTarget& target) const;
 
-    // Инициализирует анимации. Вызывается один раз после загрузки текстуры.
-    void setupAnimations(const sf::Texture& sheet, sf::Vector2i frameSize);
+    // Sprite-sheet режим — Option B: один PNG на состояние.
+    // Ключи (могут отсутствовать; если есть хотя бы "idle" — включается спрайтовый режим):
+    //   "idle"   (6 frames)
+    //   "walk"   (8 frames)
+    //   "run"    (10 frames)
+    //   "crouch" (4 frames, не зацикленная)
+    void setupAnimations(const std::map<std::string, const sf::Texture*>& sheets,
+                         sf::Vector2i frameSize);
 
     sf::FloatRect getHitbox() const;
     sf::Vector2f  getCenter() const;
+    sf::Vector2f  velocity() const { return m_velocity; }
     void addExternalVelocity(const sf::Vector2f& dv) { m_velocity += dv; }
 
     bool isDead()          const { return m_dead; }
     void kill();
 
-    // Применяет смещение платформы-носителя до собственного update.
     void applyPlatformCarry(sf::Vector2f delta)           { m_position += delta; }
     void applyExternalDisplacement(const sf::Vector2f& d) { m_position += d; }
 
@@ -35,15 +43,7 @@ public:
 
     void onLevelLoaded(const Level& level);
 
-    // --- Blade platform support ---
-
-    /// Обнуляет нисходящую скорость (vy > 0). Вызывается снаружи,
-    /// когда игрок стоит на лопасти и нужно не дать ему "провалиться" сквозь неё.
     void zeroFallVelocity();
-
-    /// Принудительно ставит флаг "на земле" и сбрасывает койот-таймер.
-    /// Вызывается после ручного снапа на лопасть, чтобы следующий
-    /// тик physics использовал наземные параметры (ускорение, трение).
     void forceOnGround();
 
 private:
@@ -59,8 +59,9 @@ private:
     void resetMotionState();
     void syncGroundState(const Level& level);
     void updateAnimation(const InputState& input);
+    void killIfOutOfBounds(const Level& level);
 
-    // --- физика ---
+    // ── физика ──
     sf::Vector2f m_position{0.f, 0.f};
     sf::Vector2f m_velocity{0.f, 0.f};
 
@@ -82,18 +83,21 @@ private:
     float m_wallJumpHorizPhaseTimer  = 0.f;
     float m_wallJumpBoostDir         = 0.f;
 
-    // --- приседание ---
     bool m_isCrouching = false;
 
-    // --- состояние ---
+    // ── состояние ──
     bool  m_dead          = false;
     bool  m_finishedLevel = false;
     int   m_deathCount    = 0;
     float m_timeAlive     = 0.f;
 
-    // --- визуал ---
+    bool  m_facingRight   = true;
+
+    // ── визуал ──
     SpriteAnimator             m_animator;
     bool                       m_hasSheet    = false;
+    sf::Vector2i               m_frameSize{0, 0};
+    std::map<std::string, const sf::Texture*> m_stateTextures;
     mutable sf::Sprite         m_sprite;
     mutable sf::RectangleShape m_debugShape;
 };

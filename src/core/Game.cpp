@@ -175,6 +175,13 @@ void Game::loadResources() {
 
 void Game::loadTextures() {
     const std::map<std::string, std::string> manifest = {
+        // ── PLAYER (Option B: один PNG-strip на состояние) ─────────────────
+        {"player_idle",    "assets/textures/player/idle.png"},
+        {"player_walk",    "assets/textures/player/walk.png"},
+        {"player_run",     "assets/textures/player/run.png"},
+        {"player_crouch",  "assets/textures/player/crouch.png"},
+
+        // ── OBSTACLES ──────────────────────────────────────────────────────
         {"obs_crossbow",   "assets/textures/obstacles/crossbow.png"},
         {"obs_arrow",      "assets/textures/obstacles/arrow.png"},
         {"obs_cannon",     "assets/textures/obstacles/cannon.png"},
@@ -202,8 +209,37 @@ void Game::loadTextures() {
             m_textures.erase(id);
             continue;
         }
-        m_textures[id].setRepeated(true);
         std::cout << "[Texture] Loaded: " << id << std::endl;
+    }
+
+    // ── Подключаем анимации игрока, если есть хотя бы одна из текстур ──
+    {
+        std::map<std::string, const sf::Texture*> playerSheets;
+        auto tryAdd = [&](const std::string& state, const std::string& texKey) {
+            auto it = m_textures.find(texKey);
+            if (it != m_textures.end()) playerSheets[state] = &it->second;
+        };
+        tryAdd("idle",   "player_idle");
+        tryAdd("walk",   "player_walk");
+        tryAdd("run",    "player_run");
+        tryAdd("crouch", "player_crouch");
+
+        // Размер одного кадра берём из текстуры idle (если она есть):
+        // ширина = texW / 6 (idle — 6 кадров), высота = texH.
+        // Если idle нет, остаёмся в fallback-режиме (цветной прямоугольник).
+        if (!playerSheets.empty()) {
+            const sf::Texture* ref = playerSheets.count("idle") ? playerSheets["idle"]
+                                                                : playerSheets.begin()->second;
+            const sf::Vector2u sz = ref->getSize();
+            const sf::Vector2i frame{
+                static_cast<int>(sz.x / 6u),
+                static_cast<int>(sz.y)};
+            m_player.setupAnimations(playerSheets, frame);
+            std::cout << "[Player] Animations bound (" << playerSheets.size()
+                      << " state(s); frame=" << frame.x << "x" << frame.y << ")\n";
+        } else {
+            std::cout << "[Player] No animation textures found — running in fallback mode.\n";
+        }
     }
 }
 

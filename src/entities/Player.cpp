@@ -28,61 +28,59 @@ constexpr float kWallJumpHorizDrag       = 2.f * kWallJumpVelX * (1.3f - 1.f) / 
 constexpr float kWallJumpOpposeAccelMult = 0.32f;
 constexpr float kSpringVelY              = -920.f;
 constexpr float kMaxFallSpeed            = 980.f;
-constexpr float kKillBelowMargin         = 256.f;
+constexpr float kKillMargin              = 256.f;
 
 } // namespace
 
 // ── Анимации ──────────────────────────────────────────────────────────────────
 
-void Player::setupAnimations(const sf::Texture& sheet, sf::Vector2i frameSize) {
-    m_sprite.setTexture(sheet);
-    m_hasSheet = true;
+void Player::setupAnimations(const std::map<std::string, const sf::Texture*>& sheets,
+                             sf::Vector2i frameSize) {
+    m_stateTextures = sheets;
+    m_frameSize     = frameSize;
+    m_hasSheet      = !sheets.empty() && frameSize.x > 0 && frameSize.y > 0;
+    if (!m_hasSheet) return;
 
-    // Хелпер: строит Animation из одного горизонтального ряда (row) спрайт-шита.
-    auto makeRow = [&](int row, int count, float fps, bool loop = true) {
+    auto makeStrip = [&](int frameCount, float frameDuration, bool loop) {
         Animation anim;
-        anim.frameDuration = 1.f / fps;
+        anim.frameDuration = frameDuration;
         anim.loop          = loop;
-        for (int i = 0; i < count; ++i)
-            anim.frames.push_back({i * frameSize.x, row * frameSize.y, frameSize.x, frameSize.y});
+        anim.frames.reserve(static_cast<size_t>(frameCount));
+        for (int i = 0; i < frameCount; ++i) {
+            anim.frames.emplace_back(i * frameSize.x, 0, frameSize.x, frameSize.y);
+        }
         return anim;
     };
 
-    // Когда придёт художник, поменять только row/count/fps.
-    m_animator.addAnimation("idle",         makeRow(0, 4, 8.f));
-    m_animator.addAnimation("walk",         makeRow(1, 6, 12.f));
-    m_animator.addAnimation("run",          makeRow(2, 6, 16.f));
-    m_animator.addAnimation("jump_rise",    makeRow(3, 2, 8.f,  false));
-    m_animator.addAnimation("jump_fall",    makeRow(4, 2, 8.f,  false));
-    m_animator.addAnimation("wall_slide",   makeRow(5, 2, 6.f));
-    m_animator.addAnimation("crouch_enter", makeRow(6, 3, 12.f, false));
-    m_animator.addAnimation("crouch_idle",  makeRow(7, 2, 6.f));
-    m_animator.addAnimation("crouch_walk",  makeRow(8, 4, 10.f));
+    m_animator.addAnimation("idle",   makeStrip(6,  0.12f, true));
+    m_animator.addAnimation("walk",   makeStrip(8,  0.08f, true));
+    m_animator.addAnimation("run",    makeStrip(10, 0.06f, true));
+    m_animator.addAnimation("crouch", makeStrip(4,  0.10f, false));
     m_animator.setState("idle");
+
+    auto idleIt = m_stateTextures.find("idle");
+    if (idleIt != m_stateTextures.end() && idleIt->second) {
+        m_sprite.setTexture(*idleIt->second, true);
+    }
 }
 
 void Player::updateAnimation(const InputState& input) {
     const bool moving = (input.left || input.right) && std::abs(m_velocity.x) > 10.f;
-    const bool onWall = !m_onGround && ((m_wallLeft && input.left) || (m_wallRight && input.right));
 
     if (m_isCrouching) {
-        if (moving)
-            m_animator.setState("crouch_walk");
-        else
-            m_animator.setState("crouch_idle");
+        m_animator.setState("crouch");
     } else if (!m_onGround) {
-        if (onWall)
-            m_animator.setState("wall_slide");
-        else if (m_velocity.y < 0.f)
-            m_animator.setState("jump_rise");
-        else
-            m_animator.setState("jump_fall");
-    } else {
-        if (moving) {
+        // В воздухе показываем walk/run (в зависимости от скорости),
+        // а в покое возвращаемся к idle.
+        if (std::abs(m_velocity.x) > 150.f)
             m_animator.setState(input.sprint ? "run" : "walk");
-        } else {
+        else
             m_animator.setState("idle");
-        }
+    } else {
+        if (moving)
+            m_animator.setState(input.sprint ? "run" : "walk");
+        else
+            m_animator.setState("idle");
     }
 }
 
@@ -111,7 +109,6 @@ void Player::forceOnGround() {
     m_coyoteTimer = kCoyoteTime;
 }
 
-
 void Player::kill() {
     if (m_dead || m_finishedLevel) return;
     m_dead = true;
@@ -137,6 +134,7 @@ void Player::resetMotionState() {
     m_wallJumpBoostDir          = 0.f;
     m_isCrouching               = false;
     m_size.y                    = kStandHeight;
+    m_facingRight               = true;
 }
 
 void Player::respawn(const Level& level) {
@@ -144,6 +142,7 @@ void Player::respawn(const Level& level) {
     m_dead          = false;
     m_finishedLevel = false;
     resetMotionState();
+    m_animator.setState("idle");
     syncGroundState(level);
 }
 
@@ -195,10 +194,18 @@ bool Player::computeWallRight(const Level& level, const sf::FloatRect& hb) const
 
 bool Player::canUncrouch(const Level& level) const {
     sf::FloatRect standing = getHitbox();
-    // Хитбокс стоя: сдвигаем верх вверх на (kStandHeight - kCrouchHeight)
     standing.top    -= (kStandHeight - kCrouchHeight);
     standing.height  = kStandHeight;
     return !level.overlapsSolid(standing);
+}
+
+void Player::killIfOutOfBounds(const Level& level) {
+    // Открытый верх: смерти при подъёме НЕТ.
+    // Падение в яму (низ) — смерть.
+    if (m_position.y > level.pixelSize().y + kKillMargin) { kill(); return; }
+    // Вылет за горизонтальные границы уровня — смерть.
+    if (m_position.x + m_size.x < -kKillMargin)                          { kill(); return; }
+    if (m_position.x > level.pixelSize().x + kKillMargin)                { kill(); return; }
 }
 
 // ── Update ────────────────────────────────────────────────────────────────────
@@ -209,7 +216,6 @@ void Player::update(float dt, const Level& level, const InputState& input) {
     const bool wasOnGroundPrev = m_wasOnGround;
     m_timeAlive += dt;
 
-    // Таймеры wall jump
     m_wallJumpCooldown        = std::max(0.f, m_wallJumpCooldown        - dt);
     m_wallJumpBoostTimer      = std::max(0.f, m_wallJumpBoostTimer      - dt);
     m_wallJumpHorizPhaseTimer = std::max(0.f, m_wallJumpHorizPhaseTimer - dt);
@@ -220,16 +226,13 @@ void Player::update(float dt, const Level& level, const InputState& input) {
         if (wantCrouch && !m_isCrouching) {
             m_isCrouching = true;
             const float shrink = kStandHeight - kCrouchHeight;
-            m_position.y += shrink;      // нижняя граница остаётся на месте
+            m_position.y += shrink;
             m_size.y      = kCrouchHeight;
         } else if (!wantCrouch && m_isCrouching && canUncrouch(level)) {
             m_isCrouching = false;
             m_position.y -= (kStandHeight - kCrouchHeight);
             m_size.y      = kStandHeight;
         }
-    } else if (m_isCrouching) {
-        // В воздухе нельзя присесть; при приземлении состояние сохранится
-        // и снимется только после отпускания DOWN на земле.
     }
 
     // ── Горизонтальное движение ──────────────────────────────────────────────
@@ -258,6 +261,10 @@ void Player::update(float dt, const Level& level, const InputState& input) {
     }
 
     m_velocity.x = std::clamp(m_velocity.x, -maxSpeed, maxSpeed);
+
+    // Обновляем направление взгляда
+    if (m_velocity.x >  10.f) m_facingRight = true;
+    else if (m_velocity.x < -10.f) m_facingRight = false;
 
     // ── Гравитация + wall slide ──────────────────────────────────────────────
     float gravity = kGravity;
@@ -342,7 +349,6 @@ void Player::update(float dt, const Level& level, const InputState& input) {
         m_wallLeft  = computeWallLeft(level, hb);
         m_wallRight = computeWallRight(level, hb);
 
-        // Spring bounce
         if (m_onGround && !wasOnGroundPrev && level.sampleGroundBelow(hb) == Tile::Spring) {
             m_velocity.y = kSpringVelY;
             m_onGround   = false;
@@ -353,8 +359,7 @@ void Player::update(float dt, const Level& level, const InputState& input) {
     m_wasOnGround = m_onGround;
 
     // ── Смерть / финиш ───────────────────────────────────────────────────────
-    if (m_position.y > level.pixelSize().y + kKillBelowMargin)
-        kill();
+    killIfOutOfBounds(level);
 
     const sf::FloatRect hbFinal = getHitbox();
     if (level.overlapsHazard(hbFinal)) kill();
@@ -369,21 +374,46 @@ void Player::update(float dt, const Level& level, const InputState& input) {
 
 void Player::draw(sf::RenderTarget& target) const {
     if (m_hasSheet) {
-        m_sprite.setTextureRect(m_animator.currentRect());
-        const auto bounds = m_sprite.getLocalBounds();
-        if (bounds.width > 0.f && bounds.height > 0.f) {
-            m_sprite.setScale(m_size.x / bounds.width, m_size.y / bounds.height);
+        const std::string& state = m_animator.state();
+        const sf::Texture* tex   = nullptr;
+        auto it = m_stateTextures.find(state);
+        if (it != m_stateTextures.end() && it->second) {
+            tex = it->second;
+        } else {
+            auto fallback = m_stateTextures.find("idle");
+            if (fallback != m_stateTextures.end()) tex = fallback->second;
         }
-        m_sprite.setPosition(m_position);
-        target.draw(m_sprite);
-    } else {
-        m_debugShape.setSize(m_size);
-        m_debugShape.setPosition(m_position);
-        m_debugShape.setFillColor(m_isCrouching
-            ? sf::Color(200, 180, 40)
-            : sf::Color(240, 220, 60));
-        m_debugShape.setOutlineColor(sf::Color(40, 35, 20));
-        m_debugShape.setOutlineThickness(2.f);
-        target.draw(m_debugShape);
+
+        if (tex) {
+            m_sprite.setTexture(*tex, false);
+            m_sprite.setTextureRect(m_animator.currentRect());
+
+            const float frameW = std::max(1, m_frameSize.x);
+            const float frameH = std::max(1, m_frameSize.y);
+            float sx = m_size.x / frameW;
+            float sy = m_size.y / frameH;
+
+            // Горизонтальный flip: масштабируем по X в минус, но компенсируем
+            // позицию, чтобы спрайт визуально остался в границах хитбокса.
+            sf::Vector2f drawPos = m_position;
+            if (!m_facingRight) {
+                sx = -sx;
+                drawPos.x += m_size.x;
+            }
+            m_sprite.setScale(sx, sy);
+            m_sprite.setPosition(drawPos);
+            target.draw(m_sprite);
+            return;
+        }
     }
+
+    // Безопасный fallback — цветной прямоугольник фиксированного размера.
+    m_debugShape.setSize(m_size);
+    m_debugShape.setPosition(m_position);
+    m_debugShape.setFillColor(m_isCrouching
+        ? sf::Color(200, 180, 40)
+        : sf::Color(240, 220, 60));
+    m_debugShape.setOutlineColor(sf::Color(40, 35, 20));
+    m_debugShape.setOutlineThickness(2.f);
+    target.draw(m_debugShape);
 }
