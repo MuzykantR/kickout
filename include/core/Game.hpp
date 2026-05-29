@@ -97,6 +97,13 @@ private:
 
     bool m_overviewHeld = false;   // Зажата клавиша обзора всего уровня (C).
 
+    // ── Переход между состояниями уровня (fade-out → action → fade-in) ──
+    enum class Transition { None, Respawn, Advance };
+    Transition m_transition       = Transition::None;
+    float      m_fadeAlpha        = 0.f;   // 0..1
+    float      m_fadeDir          = 0.f;   // +1 → in (towards black), -1 → out (towards transparent)
+    static constexpr float kFadeSpeed = 3.0f;
+
     // Однопиксельная белая текстура — заглушка для Entity-платформ
     sf::Texture m_whiteTex;
 

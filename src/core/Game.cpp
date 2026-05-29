@@ -318,6 +318,7 @@ bool Game::loadLevelIndex(size_t index) {
     m_gameWon = false;
     m_overviewHeld = false;
     m_camera.snapTo(m_player.getCenter(), m_window.getSize(), m_level.pixelSize());
+    // Fade оставляем без сброса: текущий переход штатно завершится fade-in'ом.
     return true;
 }
 
@@ -462,7 +463,10 @@ void Game::spawnEntity(const PlacedEntity& pe) {
             pe.armDelay,
             pe.blastRadius,
             [this]() { return m_player.getCenter(); },
-            [this]() { m_player.kill(); }));
+            [this]() {
+                m_player.kill();
+                m_camera.addShake(20.f);   // мина → сильная тряска
+            }));
 
     } else if (pe.type == "ferris_wheel") {
         const sf::Texture* hubTex   = nullptr;
@@ -848,12 +852,30 @@ void Game::updatePlaying(float dt) {
                        }),
         m_entities.end());
 
-    if (m_player.isDead()) {
-        tryPlaySfx("death");
-        respawnCurrentLevel();
+    // ── 10. Переходы (fade-out → действие → fade-in) ─────────────────────────
+    if (m_transition == Transition::None) {
+        if (m_player.isDead()) {
+            tryPlaySfx("death");
+            m_camera.addShake(14.f);
+            m_transition = Transition::Respawn;
+            m_fadeDir    = +1.f;
+        } else if (m_player.reachedFinish()) {
+            m_transition = Transition::Advance;
+            m_fadeDir    = +1.f;
+        }
     }
-    if (m_player.reachedFinish()) {
-        advanceLevelOrWin();
+
+    if (m_transition != Transition::None) {
+        m_fadeAlpha = std::clamp(m_fadeAlpha + m_fadeDir * kFadeSpeed * dt, 0.f, 1.f);
+        if (m_fadeAlpha >= 1.f && m_fadeDir > 0.f) {
+            // Полностью чёрный экран → выполняем переход и разворачиваем fade обратно.
+            if (m_transition == Transition::Respawn)      respawnCurrentLevel();
+            else if (m_transition == Transition::Advance) advanceLevelOrWin();
+            m_fadeDir = -1.f;
+        } else if (m_fadeAlpha <= 0.f && m_fadeDir < 0.f) {
+            m_transition = Transition::None;
+            m_fadeDir    = 0.f;
+        }
     }
 }
 
@@ -899,16 +921,24 @@ void Game::drawPlaying() {
     m_window.setView(m_window.getDefaultView());
     if (m_hudFontLoaded) {
         std::ostringstream oss;
-        oss << "Level " << (m_levelIndex + 1) << "/" << m_levelPaths.size()
-            << "   Deaths: " << m_player.deathCount()
-            << "   Time: " << std::fixed << std::setprecision(1)
-            << m_player.timeAlive() << "s";
+        oss << "Уровень " << (m_levelIndex + 1) << "/" << m_levelPaths.size()
+            << "   Смертей: " << m_player.deathCount()
+            << "   Время: " << std::fixed << std::setprecision(1)
+            << m_player.timeAlive() << " с"
+            << "   [C] обзор уровня";
         if (m_gameWon)
-            oss << "   YOU WIN! (R — заново)";
-        else
-            oss << "   Синие = движутся  Оранжевые = исчезают";
+            oss << "   ПОБЕДА! (R — заново)";
         m_hud.setString(oss.str());
         m_window.draw(m_hud);
+    }
+
+    // ── Overlay затухания (fade) ─────────────────────────────────────────────
+    if (m_fadeAlpha > 0.001f) {
+        sf::RectangleShape veil({static_cast<float>(W_WIDTH),
+                                 static_cast<float>(W_HEIGHT)});
+        veil.setFillColor(sf::Color(0, 0, 0,
+            static_cast<sf::Uint8>(std::clamp(m_fadeAlpha, 0.f, 1.f) * 255.f)));
+        m_window.draw(veil);
     }
 }
 
