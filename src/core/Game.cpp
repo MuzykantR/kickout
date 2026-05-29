@@ -20,38 +20,78 @@ constexpr float kMenuBtnW   = 360.f;
 constexpr float kMenuBtnH   = 56.f;
 constexpr float kMenuBtnGap = 18.f;
 
+// ─── Вспомогательные функции ──────────────────────────────────────────────────
+
 bool isStandingOn(const sf::FloatRect& player, const sf::FloatRect& platform) {
-    constexpr float kTopEps = 6.f;
+    constexpr float kTopEps   = 6.f;
     constexpr float kSideInset = 4.f;
-    const float playerBottom = player.top + player.height;
+    const float playerBottom  = player.top + player.height;
     const bool nearTop = playerBottom >= platform.top - kTopEps &&
                          playerBottom <= platform.top + kTopEps;
 
-    const float playerLeft = player.left + kSideInset;
-    const float playerRight = player.left + player.width - kSideInset;
+    const float playerLeft   = player.left + kSideInset;
+    const float playerRight  = player.left + player.width - kSideInset;
     const float platformLeft = platform.left;
     const float platformRight = platform.left + platform.width;
     const bool overlapX = playerRight > platformLeft && playerLeft < platformRight;
     return nearTop && overlapX;
 }
 
+// ─── Детектирование "стоит ли игрок на лопасти" ──────────────────────────────
+//
+// Лопасть НЕ добавляется в dynamic solids (AABB вращающегося спрайта меняется
+// на каждом кадре и физически толкает игрока). Вместо этого мы проверяем:
+//
+//   1. Горизонтальное перекрытие между игроком и AABB лопасти.
+//   2. Центр Y игрока выше центра Y лопасти — т.е. игрок подходит СВЕРХУ,
+//      а не снизу и не сбоку. Центр лопасти (getPosition()) инвариантен
+//      при вращении → проверка стабильна в любой фазе вращения.
+//   3. Низ игрока находится в диапазоне [AABB.top - kEpsAbove, AABB.top + 60%H].
+//      Нижний предел с запасом компенсирует колебание AABB.top при вращении.
+//
 RotatingBlade* findBladeSupport(const std::vector<std::unique_ptr<Entity>>& entities,
                                 const sf::FloatRect& playerHitbox) {
-    RotatingBlade* support = nullptr;
-    float bestTop = 1e9f;
+    // Допуск сверху: игрок может быть чуть выше AABB-верха лопасти.
+    // Это стабилизирует детектор при колебании AABB в ходе вращения.
+    constexpr float kEpsAbove = 6.f;
+
+    RotatingBlade* support  = nullptr;
+    float          bestCY   = 1e9f;   // выбираем самую "верхнюю" лопасть
+
+    const float pLeft    = playerHitbox.left + 4.f;
+    const float pRight   = playerHitbox.left + playerHitbox.width - 4.f;
+    const float pBottom  = playerHitbox.top  + playerHitbox.height;
+    const float pCenterY = playerHitbox.top  + playerHitbox.height * 0.5f;
+
     for (const auto& e : entities) {
         auto* blade = dynamic_cast<RotatingBlade*>(e.get());
         if (!blade || blade->isExpired()) continue;
-        const sf::FloatRect b = blade->getBounds();
-        if (!isStandingOn(playerHitbox, b)) continue;
-        if (b.top < bestTop) {
-            bestTop = b.top;
+
+        const sf::FloatRect b  = blade->getBounds();
+        const sf::Vector2f  bc = blade->center();   // rot-инвариантный центр
+
+        // 1. Горизонтальное перекрытие
+        if (pRight <= b.left || pLeft >= b.left + b.width) continue;
+
+        // 2. Игрок подходит сверху: его центр Y < центра лопасти
+        if (pCenterY >= bc.y) continue;
+
+        // 3. Низ игрока близко к поверхности лопасти
+        const float penetration = pBottom - b.top;
+        if (penetration < -kEpsAbove)        continue;  // слишком высоко
+        if (penetration > b.height * 0.6f)   continue;  // слишком глубоко (боковой контакт)
+
+        if (bc.y < bestCY) {
+            bestCY  = bc.y;
             support = blade;
         }
     }
     return support;
 }
+
 } // namespace
+
+// ─── Конструктор / деструктор ────────────────────────────────────────────────
 
 Game::Game()
     : m_window(sf::VideoMode(W_WIDTH, W_HEIGHT), W_TITLE) {
@@ -148,6 +188,12 @@ void Game::loadTextures() {
         {"stub_spring",    "assets/textures/platforms/spring.png"},
         {"stub_hazard",    "assets/textures/platforms/hazard.png"},
         {"stub_finish",    "assets/textures/platforms/finish.png"},
+        {"conv_end_l",     "assets/textures/platforms/end_l.png"},
+        {"conv_middle",    "assets/textures/platforms/middle.png"},
+        {"conv_end_r",     "assets/textures/platforms/end_r.png"},
+        {"vanish_end_l",   "assets/textures/platforms/left_vanish1.png"},
+        {"vanish_mid",     "assets/textures/platforms/middle_vanish1.png"},
+        {"vanish_end_r",   "assets/textures/platforms/right_vanish1.png"},
     };
 
     for (const auto& [id, path] : manifest) {
@@ -241,9 +287,10 @@ void Game::setupLevelBackground() {
             return;
         }
         it = m_textures.emplace(path, std::move(tex)).first;
+        std::cout << "[Level BG] Loaded: " << path << std::endl;
     }
 
-    m_levelBackgroundSprite.setTexture(it->second);
+    m_levelBackgroundSprite.setTexture(it->second, true);
     const auto bounds = m_levelBackgroundSprite.getLocalBounds();
     m_levelBackgroundSprite.setOrigin(0.f, 0.f);
     if (bounds.width > 0.f && bounds.height > 0.f) {
@@ -274,12 +321,25 @@ void Game::spawnDynamicPlatformsFromLevel() {
 
         } else if (def.kind == DynamicPlatformDef::Kind::Vanishing) {
             auto vp = std::make_unique<VanishingPlatform>(
-                m_whiteTex,
+                getTexture("vanish_end_l"),
+                getTexture("vanish_mid"),
+                getTexture("vanish_end_r"),
                 def.bounds.left, def.bounds.top,
-                def.bounds.width, def.bounds.height);
-            vp->setColor(sf::Color(255, 160, 50));
+                def.widthInTiles,
+                m_level.tileSize());
             vp->setDeathTime(def.deathTime);
             m_entities.push_back(std::move(vp));
+
+        } else if (def.kind == DynamicPlatformDef::Kind::Conveyor) {
+            auto cp = std::make_unique<ConveyorPlatform>(
+                getTexture("conv_end_l"),
+                getTexture("conv_middle"),
+                getTexture("conv_end_r"),
+                def.bounds.left, def.bounds.top,
+                def.widthInTiles,
+                m_level.tileSize());
+            cp->setVelocity(def.conveyorVelocity);
+            m_entities.push_back(std::move(cp));
         }
     }
 }
@@ -421,17 +481,6 @@ void Game::drawMainMenu() {
         m_window.clear(sf::Color::Black);
     }
 
-    if (m_hudFontLoaded) {
-        sf::Text title("Kickout", m_fonts.at("main"), 72);
-        const auto tb = title.getLocalBounds();
-        title.setOrigin(tb.left + tb.width * 0.5f, tb.top + tb.height * 0.5f);
-        title.setPosition(W_WIDTH * 0.5f, W_HEIGHT * 0.28f);
-        title.setFillColor(sf::Color::White);
-        title.setOutlineColor(sf::Color::Black);
-        title.setOutlineThickness(3.f);
-        m_window.draw(title);
-    }
-
     drawButton(m_playButtonRect, "Play");
 }
 
@@ -495,9 +544,30 @@ void Game::handleMenuClick(sf::Vector2f pos) {
     }
 }
 
+// ─── updatePlaying ────────────────────────────────────────────────────────────
+//
+//  Порядок обновления за один тик:
+//
+//  1. Обновляем все Entity (лопасти, пушки, снаряды …).
+//  2. Регистрируем MovingPlatform и VanishingPlatform как dynamic solids.
+//     RotatingBlade сюда НЕ добавляем: её AABB колышется при вращении и
+//     будет физически выталкивать игрока.
+//  3. Если на прошлом тике игрок стоял на лопасти — переносим его
+//     заранее (до физики) на вектор касательной скорости * dt.
+//  4. Запускаем player.update() (физика, коллизии с solid-тайлами и
+//     платформами из п.2).
+//  5. Вручную разрешаем коллизию «игрок ↔ лопасть»:
+//     – находим лопасть, на которой стоит игрок (по центру, стабильно);
+//     – снапим игрока к поверхности лопасти (вверх на глубину проникновения);
+//     – обнуляем нисходящую скорость и принудительно ставим флаг onGround,
+//       чтобы следующий тик использовал наземные параметры физики.
+//  6. При НАМЕРЕННОМ прыжке (jumpPressed) передаём игроку инерцию лопасти.
+//     При простом соскальзывании с края — импульс НЕ даём.
+//
 void Game::updatePlaying(float dt) {
     if (m_gameWon) return;
 
+    // ── 1. Обновление Entity ─────────────────────────────────────────────────
     std::vector<std::unique_ptr<Entity>> spawned;
     for (auto& e : m_entities) {
         e->update(dt, spawned);
@@ -510,17 +580,28 @@ void Game::updatePlaying(float dt) {
         }
     }
 
+    // ── 2. Регистрируем dynamic solids (только платформы, НЕ лопасти) ───────
     m_level.clearDynamicSolids();
     for (auto& e : m_entities) {
         if (e->isExpired()) continue;
         if (dynamic_cast<MovingPlatform*>(e.get()) ||
             dynamic_cast<VanishingPlatform*>(e.get()) ||
-            dynamic_cast<RotatingBlade*>(e.get())) {
+            dynamic_cast<ConveyorPlatform*>(e.get())) {
             m_level.addDynamicSolid(e->getBounds());
         }
+        // RotatingBlade намеренно пропускается — обработка ниже вручную.
     }
 
-    // Перенос игрока: MovingPlatform (позиционный сдвиг).
+    // ── 3. Перенос игрока ДО физики (если стоял на лопасти в прошлом тике) ──
+    //
+    // Используем m_bladeCarryVelocity, которую обновили в прошлом тике.
+    // Это устраняет задержку: игрок уже "переехал" вместе с лопастью,
+    // прежде чем player.update() решает коллизии.
+    if (m_bladeSupportActive && !m_input.jumpPressed) {
+        m_player.applyExternalDisplacement(m_bladeCarryVelocity * dt);
+    }
+
+    // ── 3b. Перенос игрока: MovingPlatform (позиционный сдвиг) ─────────────
     {
         const sf::FloatRect hb = m_player.getHitbox();
         sf::FloatRect foot{hb.left + 2.f, hb.top + hb.height, hb.width - 4.f, 6.f};
@@ -534,18 +615,51 @@ void Game::updatePlaying(float dt) {
         }
     }
 
-    // Перенос игрока: RotatingBlade (линейная скорость поверхности).
+    // ── 4. Физика игрока ─────────────────────────────────────────────────────
+    m_player.update(dt, m_level, m_input);
+
+    // ── 5. Ручная коллизия «игрок ↔ лопасть» ────────────────────────────────
     {
-        const sf::FloatRect preHb = m_player.getHitbox();
-        RotatingBlade* supportBlade = findBladeSupport(m_entities, preHb);
-        if (supportBlade != nullptr && !m_input.jumpPressed) {
-            const sf::Vector2f carryVel = supportBlade->pointLinearVelocity(m_player.getCenter());
-            m_player.applyPlatformCarry(carryVel * dt);
+        const sf::FloatRect playerHb = m_player.getHitbox();
+        RotatingBlade* hitBlade = findBladeSupport(m_entities, playerHb);
+
+        if (hitBlade && !m_input.jumpPressed) {
+            // ── Снап: прижимаем игрока к поверхности лопасти ────────────────
+            const sf::FloatRect b        = hitBlade->getBounds();
+            const float playerBottom     = m_player.getHitbox().top + m_player.getHitbox().height;
+            const float penetration      = playerBottom - b.top;
+            if (penetration > 0.f) {
+                // Выталкиваем ровно на глубину проникновения.
+                m_player.applyExternalDisplacement({0.f, -penetration});
+            }
+
+            // Обнуляем нисходящую скорость, иначе на следующем тике гравитация
+            // снова опустит игрока в лопасть (и нам придётся снапить снова).
+            m_player.zeroFallVelocity();
+
+            // Говорим физике: "мы на земле". На следующем тике player.update()
+            // прочитает m_onGround=true и применит наземные ускорение и трение.
+            m_player.forceOnGround();
+
+            // Обновляем вектор переноса для следующего тика (п.3).
+            m_bladeSupportActive = true;
+            m_bladeCarryVelocity = hitBlade->pointLinearVelocity(m_player.getCenter());
+
+        } else if (m_bladeSupportActive) {
+            // Игрок потерял контакт с лопастью.
+            if (m_input.jumpPressed) {
+                // Намеренный прыжок: передаём инерцию вращения,
+                // чтобы игрок "вылетел" по касательной — как в классических платформерах.
+                m_player.addExternalVelocity(m_bladeCarryVelocity);
+            }
+            // При простом соскальзывании с края импульс НЕ добавляем:
+            // игрок просто падает под действием гравитации.
+            m_bladeSupportActive = false;
+            m_bladeCarryVelocity = {0.f, 0.f};
         }
     }
 
-    m_player.update(dt, m_level, m_input);
-
+    // ── 6. Исчезающие платформы ──────────────────────────────────────────────
     const sf::FloatRect playerHitbox = m_player.getHitbox();
     for (auto& e : m_entities) {
         auto* vp = dynamic_cast<VanishingPlatform*>(e.get());
@@ -555,6 +669,15 @@ void Game::updatePlaying(float dt) {
         }
     }
 
+    // ── 6b. Конвейерные ленты ────────────────────────────────────────────────
+    for (auto& e : m_entities) {
+        auto* belt = dynamic_cast<ConveyorPlatform*>(e.get());
+        if (!belt || belt->isExpired()) continue;
+        if (!isStandingOn(m_player.getHitbox(), belt->getBounds())) continue;
+        m_player.applyExternalDisplacement(belt->velocity() * dt);
+    }
+
+    // ── 7. Коллизия снарядов ─────────────────────────────────────────────────
     for (auto& e : m_entities) {
         auto* proj = dynamic_cast<Projectile*>(e.get());
         if (!proj || proj->isExpired()) continue;
@@ -565,8 +688,7 @@ void Game::updatePlaying(float dt) {
         }
     }
 
-    // Лезвие убивает игрока при контакте сбоку или снизу.
-    // Стоять сверху — безопасно (isStandingOn).
+    // ── 8. Лезвие убивает при контакте сбоку/снизу (сверху стоять можно) ─────
     {
         const sf::FloatRect phb = m_player.getHitbox();
         for (auto& e : m_entities) {
@@ -579,18 +701,7 @@ void Game::updatePlaying(float dt) {
         }
     }
 
-    RotatingBlade* supportAfter = findBladeSupport(m_entities, m_player.getHitbox());
-    if (supportAfter != nullptr && !m_input.jumpPressed) {
-        m_bladeSupportActive = true;
-        m_bladeCarryVelocity = supportAfter->pointLinearVelocity(m_player.getCenter());
-    } else {
-        if (m_bladeSupportActive) {
-            m_player.addExternalVelocity(m_bladeCarryVelocity);
-        }
-        m_bladeSupportActive = false;
-        m_bladeCarryVelocity = {0.f, 0.f};
-    }
-
+    // ── 9. Очистка мёртвых Entity ─────────────────────────────────────────────
     m_entities.erase(
         std::remove_if(m_entities.begin(), m_entities.end(),
                        [](const std::unique_ptr<Entity>& e) {
@@ -621,9 +732,10 @@ void Game::drawPlaying() {
     m_window.setView(m_camera.view());
     {
         std::map<std::string, const sf::Texture*> texMap;
+        const std::string& levelBg = m_level.backgroundPath();
         for (const auto& [id, tex] : m_textures) {
             if (id == "menu_bg") continue;
-            if (m_hasLevelBackground && id == m_level.backgroundPath()) continue;
+            if (m_hasLevelBackground && id == levelBg) continue;
             texMap[id] = &tex;
         }
         m_level.draw(m_window, &texMap);

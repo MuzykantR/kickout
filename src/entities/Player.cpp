@@ -101,6 +101,17 @@ sf::Vector2f Player::getCenter() const {
     return {m_position.x + m_size.x * 0.5f, m_position.y + m_size.y * 0.5f};
 }
 
+void Player::zeroFallVelocity() {
+    if (m_velocity.y > 0.f) m_velocity.y = 0.f;
+}
+
+void Player::forceOnGround() {
+    m_onGround    = true;
+    m_wasOnGround = true;
+    m_coyoteTimer = kCoyoteTime;
+}
+
+
 void Player::kill() {
     if (m_dead || m_finishedLevel) return;
     m_dead = true;

@@ -14,6 +14,7 @@
 #include "entities/Player.hpp"
 #include "platforms/MovingPlatform.hpp"
 #include "platforms/VanishingPlatform.hpp"
+#include "platforms/ConveyorPlatform.hpp"
 #include "world/Camera.hpp"
 #include "world/Level.hpp"
 

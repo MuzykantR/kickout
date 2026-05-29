@@ -25,7 +25,7 @@ public:
     void move(sf::Vector2f offset)            { m_sprite.move(offset); }
     void move(float offsetX, float offsetY)   { m_sprite.move(offsetX, offsetY); }
 
-    sf::FloatRect getBounds() const { return m_sprite.getGlobalBounds(); }
+    virtual sf::FloatRect getBounds() const { return m_sprite.getGlobalBounds(); }
 
 protected:
     sf::Sprite m_sprite;

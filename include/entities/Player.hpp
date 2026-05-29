@@ -24,7 +24,8 @@ public:
     void kill();
 
     // Применяет смещение платформы-носителя до собственного update.
-    void applyPlatformCarry(sf::Vector2f delta) { m_position += delta; }
+    void applyPlatformCarry(sf::Vector2f delta)           { m_position += delta; }
+    void applyExternalDisplacement(const sf::Vector2f& d) { m_position += d; }
 
     bool reachedFinish()   const { return m_finishedLevel; }
     void clearFinish()           { m_finishedLevel = false; }
@@ -33,6 +34,17 @@ public:
     float timeAlive()  const { return m_timeAlive; }
 
     void onLevelLoaded(const Level& level);
+
+    // --- Blade platform support ---
+
+    /// Обнуляет нисходящую скорость (vy > 0). Вызывается снаружи,
+    /// когда игрок стоит на лопасти и нужно не дать ему "провалиться" сквозь неё.
+    void zeroFallVelocity();
+
+    /// Принудительно ставит флаг "на земле" и сбрасывает койот-таймер.
+    /// Вызывается после ручного снапа на лопасть, чтобы следующий
+    /// тик physics использовал наземные параметры (ускорение, трение).
+    void forceOnGround();
 
 private:
     static void separateAxisX(const Level& level, sf::FloatRect& hb, float dirSign);

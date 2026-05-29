@@ -32,7 +32,7 @@
       "offsetX": 0, "offsetY": -96,
       "speed": 80
     },
-    { "type": "vanishing", "x": 1296, "y": 264, "w": 96, "h": 24, "deathTime": 1.6 },
-    { "type": "vanishing", "x": 1416, "y": 264, "w": 96, "h": 24, "deathTime": 1.4 }
+    { "type": "vanishing", "x": 1296, "y": 253, "widthInTiles": 3, "deathTime": 1.6 },
+    { "type": "vanishing", "x": 1440, "y": 253, "widthInTiles": 3, "deathTime": 1.4 }
   ]
 }

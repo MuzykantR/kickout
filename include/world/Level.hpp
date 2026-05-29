@@ -29,13 +29,16 @@ struct PlacedEntity {
 
 // Описание динамической платформы, прочитанное из JSON-поля "dynamic_platforms"
 struct DynamicPlatformDef {
-    enum class Kind : uint8_t { Moving, Vanishing } kind = Kind::Moving;
+    enum class Kind : uint8_t { Moving, Vanishing, Conveyor } kind = Kind::Moving;
     sf::FloatRect bounds{};
     // Moving
     sf::Vector2f moveOffset{0.f, 0.f};
     float moveSpeed = 100.f;
     // Vanishing
     float deathTime = 1.5f;
+    // Conveyor
+    sf::Vector2f conveyorVelocity{0.f, 0.f};
+    int widthInTiles = 1;
 };
 
 enum class Tile : uint8_t {
